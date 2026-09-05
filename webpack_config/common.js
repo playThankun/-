@@ -12,11 +12,13 @@ module.exports = {
     entry: {
         entry: './src/entry.js',
     },
+
     output: {
         path: path.resolve('./dist'),
-        publicPath: '/dist/',
+        publicPath: '/',
         filename: '[name].js',
     },
+
     resolve: {
         fallback: {
             fs: false,
@@ -29,6 +31,7 @@ module.exports = {
         extensions: ['.ts', '.tsx', '.js', '.json'],
         mainFields: ['jsnext:main', 'browser', 'main'],
     },
+
     module: {
         rules: [
             {
@@ -63,7 +66,7 @@ module.exports = {
                 type: 'asset',
                 parser: {
                     dataUrlCondition: {
-                        maxSize: 10000, // 10kb
+                        maxSize: 10000,
                     },
                 },
                 generator: {
@@ -104,7 +107,7 @@ module.exports = {
                                         '>1%',
                                         'last 4 versions',
                                         'Firefox ESR',
-                                        'not ie < 9', // React doesn't support IE8 anyway
+                                        'not ie < 9',
                                     ],
                                     flexbox: 'no-2009',
                                     remove: false,
@@ -122,6 +125,7 @@ module.exports = {
             },
         ],
     },
+
     externals: {
         react: 'React',
         'react-dom': 'ReactDOM',
@@ -130,18 +134,23 @@ module.exports = {
         '@entrylabs/sound-editor': 'EntrySoundEditor',
         '@entrylabs/legacy-video': 'EntryVideoLegacy',
     },
+
     plugins: [
         new CleanWebpackPlugin(['dist'], {
             root: path.join(__dirname, '..'),
         }),
+
         new WebpackManifestPlugin(),
+
         new webpack.ProvidePlugin({
             Buffer: ['buffer', 'Buffer'],
         }),
+
         new MiniCssExtractPlugin({
             filename: '[name].css',
             chunkFilename: '[id].css',
         }),
+
         new CopyPlugin({
             patterns: [
                 {
@@ -153,8 +162,19 @@ module.exports = {
                         'dist',
                         'libkhaiii.wasm'
                     ),
-                    to: path.join(__dirname, '..', 'dist', 'libkhaiii.wasm'),
+                    to: path.join(
+                        __dirname,
+                        '..',
+                        'dist',
+                        'libkhaiii.wasm'
+                    ),
                     toType: 'file',
+                },
+
+                // extern 폴더 전체를 dist/extern으로 복사
+                {
+                    from: path.join(__dirname, '..', 'extern'),
+                    to: path.join(__dirname, '..', 'dist', 'extern'),
                 },
             ],
         }),
