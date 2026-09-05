@@ -58,10 +58,8 @@ Entry.isDefaultProject = function (project) {
             'variables.1.y',
             'objects.0.id',
             'objects.0.scene',
-            'objects.0.sprite.sounds.0.id',
             'objects.0.sprite.sounds.length',
             'objects.0.sprite.pictures.0.id',
-            'objects.0.sprite.pictures.1.id',
             'objects.0.sprite.pictures.length',
             'expansionBlocks',
             'aiUtilizeBlocks',
@@ -111,10 +109,11 @@ Entry.getStartProject = function (mediaFilePath) {
         objects: [
             {
                 id: '7y0y',
-                name: Lang.Blocks.entry_bot_name,
+                // 기본 오브젝트 이름을 땡쿤으로 교체
+                name: '땡쿤',
                 label: {
-                    ko: '엔트리봇',
-                    en: 'Entrybot',
+                    ko: '땡쿤',
+                    en: 'Thankun',
                 },
                 script: [
                     [
@@ -134,40 +133,21 @@ Entry.getStartProject = function (mediaFilePath) {
                 rotateMethod: 'free',
                 scene: '7dwq',
                 sprite: {
-                    sounds: [
-                        {
-                            duration: 1.3,
-                            ext: '.mp3',
-                            id: '8el5',
-                            fileurl: `${mediaFilePath}media/bark.mp3`,
-                            name: Lang.Blocks.doggi_bark,
-                            label: {
-                                ko: '강아지 짖는소리',
-                                en: "Doggi's Bark",
-                            },
-                        },
-                    ],
+                    // 아직 사운드 에셋이 없으므로 비워둠
+                    // (나중에 준비되면 entrybot의 sounds 배열처럼 { id, fileurl, name, label } 형태로 추가)
+                    sounds: [],
                     pictures: [
                         {
                             id: 'vx80',
-                            fileurl: `${mediaFilePath}media/entrybot1.svg`,
-                            thumbUrl: `${mediaFilePath}media/entrybot1.svg`,
-                            name: `${Lang.Blocks.walking_entryBot}1`,
+                            // media 폴더에 땡쿤 이미지를 넣고 파일명을 여기에 맞춰주세요
+                            // (예: media/thankun.svg)
+                            fileurl: `${mediaFilePath}media/thankun.svg`,
+                            thumbUrl: `${mediaFilePath}media/thankun.svg`,
+                            name: '땡쿤_1',
                             imageType: 'svg',
                             dimension: {
-                                width: 144,
-                                height: 246,
-                            },
-                        },
-                        {
-                            id: '4t48',
-                            fileurl: `${mediaFilePath}media/entrybot2.svg`,
-                            thumbUrl: `${mediaFilePath}media/entrybot2.svg`,
-                            name: `${Lang.Blocks.walking_entryBot}2`,
-                            imageType: 'svg',
-                            dimension: {
-                                width: 144,
-                                height: 246,
+                                width: 289,
+                                height: 302,
                             },
                         },
                     ],
@@ -175,14 +155,14 @@ Entry.getStartProject = function (mediaFilePath) {
                 entity: {
                     x: 0,
                     y: 0,
-                    regX: 72,
-                    regY: 123,
-                    scaleX: 0.5128205128205128,
-                    scaleY: 0.5128205128205128,
+                    regX: 144.5,
+                    regY: 151,
+                    scaleX: 1,
+                    scaleY: 1,
                     rotation: 0,
                     direction: 90,
-                    width: 144,
-                    height: 246,
+                    width: 289,
+                    height: 302,
                     visible: true,
                 },
                 lock: false,
