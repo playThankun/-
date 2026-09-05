@@ -77,7 +77,9 @@ module.exports = {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
                 exclude: /node_modules/,
-                options: { transpileOnly: true },
+                options: {
+                    transpileOnly: true,
+                },
             },
             {
                 test: /\.(css|less)$/,
@@ -153,6 +155,7 @@ module.exports = {
 
         new CopyPlugin({
             patterns: [
+                // khaiii WASM
                 {
                     from: path.join(
                         __dirname,
@@ -175,6 +178,12 @@ module.exports = {
                 {
                     from: path.join(__dirname, '..', 'extern'),
                     to: path.join(__dirname, '..', 'dist', 'extern'),
+                },
+
+                // images 폴더 전체를 dist/images로 복사
+                {
+                    from: path.join(__dirname, '..', 'images'),
+                    to: path.join(__dirname, '..', 'dist', 'images'),
                 },
             ],
         }),
