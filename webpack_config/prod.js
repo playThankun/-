@@ -27,22 +27,12 @@ module.exports = {
             chunkFilename: '[name][contenthash].css',
         }),
 
-        // /
-        // 진짜 홈페이지
-        new HtmlWebpackPlugin({
-            template: path.resolve('example', 'index.ejs'),
-            title: 'EntryJS',
-            filename: 'index.html',
-            inject: false,
-        }),
-
-        // /editor/
-        // 기존 EntryJS 에디터
         new HtmlWebpackPlugin({
             template: path.resolve('example', 'example.ejs'),
-            title: 'EntryJS Editor',
-            filename: 'editor/index.html',
+            title: 'Entry Example',
+            filename: path.resolve('dist', 'index.html'),
             inject: false,
+            hash: true,
         }),
     ],
 
