@@ -11,7 +11,7 @@
         <% for (var css in htmlWebpackPlugin.files.css) { %>
         <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet" />
         <% } %>
-        <link href="https://playentry.org/lib/entry-tool/dist/entry-tool.css" rel="stylesheet" />
+        <link href="https://unpkg.com/@entrylabs/tool/dist/entry-tool.css" rel="stylesheet" />
         <link href="https://playentry.org/lib/entry-lms/dist/assets/app.css" rel="stylesheet" />
     </head>
 
@@ -29,93 +29,94 @@
                 Python Mode
             </button>
         </section>
-        <div id="workspace"></div>
+        <div id="entry-tool-container"></div>
+<div id="workspace"></div>
 
         <!--language-->
         <script src="../extern/lang/ko.js"></script>
 
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/PreloadJS/lib/preloadjs-0.6.0.min.js"
+            src="https://code.createjs.com/1.0.0/preloadjs.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/EaselJS/lib/easeljs-0.8.0.min.js"
+            src="https://code.createjs.com/1.0.0/easeljs.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/SoundJS/lib/soundjs-0.6.0.min.js"
+            src="https://code.createjs.com/1.0.0/soundjs.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/SoundJS/lib/flashaudioplugin-0.6.0.min.js"
+            src="https://code.createjs.com/1.0.0/flashaudioplugin.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/lodash/dist/lodash.min.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/jquery/jquery.min.js"
+            src="https://code.jquery.com/jquery-3.6.0.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/jquery-ui/ui/minified/jquery-ui.min.js"
+            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/velocity/velocity.min.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.5.2/velocity.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/codemirror/lib/codemirror.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/codemirror/addon/hint/show-hint.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/codemirror/addon/lint/lint.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/lint/lint.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/codemirror/addon/selection/active-line.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/selection/active-line.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/codemirror/mode/javascript/javascript.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/codemirror/addon/hint/javascript-hint.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/javascript-hint.min.js"
         ></script>
-        <script type="text/javascript" src="https://playentry.org/js/jshint.js"></script>
-        <script type="text/javascript" src="https://playentry.org/lib/fuzzy/lib/fuzzy.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.13.6/jshint.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fuzzy/0.1.3/fuzzy.min.js"></script>
         <script type="text/javascript" src="https://playentry.org/js/ws/python.js"></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/entry-js/extern/util/filbert.js"
+            src="../extern/util/filbert.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/entry-js/extern/util/CanvasInput.js"
+            src="../extern/util/CanvasInput.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/entry-js/extern/util/ndgmr.Collision.js"
+            src="../extern/util/ndgmr.Collision.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/entry-js/extern/util/handle.js"
+            src="../extern/util/handle.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/entry-js/extern/util/bignumber.min.js"
+            src="../extern/util/bignumber.min.js"
         ></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/socket.io-client/socket.io.js"
+            src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"
         ></script>
         <script type="text/javascript" src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
         <script type="text/javascript" src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -126,7 +127,7 @@
         <script src="../extern/util/static.js"></script>
         <script
             type="text/javascript"
-            src="https://playentry.org/lib/entry-tool/dist/entry-tool.js"
+            src="https://unpkg.com/@entrylabs/tool/dist/entry-tool.js"
         ></script>
         <script
             type="text/javascript"
@@ -174,20 +175,473 @@
                 }
             }
         </script>
-        <!--main script-->
-        <script>
-            window.PUBLIC_PATH_FOR_ENTRYJS = 'lib/entry-js/dist/';
-            $(document).ready(function() {
-                var initOption = {
-                    libDir: '',
-                    entryDir: '',
-                    type: 'workspace',
-                    textCodingEnable: true,
+<!-- main script -->
+<script>
+    window.PUBLIC_PATH_FOR_ENTRYJS = 'lib/entry-js/dist/';
+
+    $(document).ready(function() {
+        var initOption = {
+            libDir: '',
+            entryDir: '',
+            type: 'workspace',
+            textCodingEnable: true,
+        };
+
+        Entry.defaultPath = 'https://playentry.org';
+
+        Entry.creationChangedEvent = new Entry.Event(window);
+        Entry.init(document.getElementById('workspace'), initOption);
+        Entry.loadProject();
+
+        const PopupClass = window.EntryTool
+            ? window.EntryTool.Popup
+            : (typeof Popup !== 'undefined' ? Popup : null);
+
+        if (!PopupClass) {
+            console.error('EntryTool Popup을 찾을 수 없습니다.');
+            return;
+        }
+
+        /*
+         * sidebar/data 선언
+         */
+        const spriteSidebarData = {
+            entrybot_friends: {
+                id: 'entrybot_friends',
+                name: '엔트리봇',
+                value: 'entrybot_friends',
+                sub: {
+                    all: {
+                        id: '',
+                        name: '전체',
+                        value: 'all'
+                    }
+                }
+            }
+        };
+
+        const officialSpriteData = [
+            {
+                id: Entry.generateHash(),
+                name: '점프 엔트리봇',
+                label: {
+                    ko: '점프 엔트리봇',
+                    en: 'Jumping Entrybot'
+                },
+                category: {
+                    main: 'entrybot_friends',
+                    sub: 'all'
+                },
+                pictures: [
+                    {
+                        id: Entry.generateHash(),
+                        name: '점프 엔트리봇_1',
+                        label: {
+                            ko: '점프 엔트리봇_1'
+                        },
+                        filename: '83862329mtmwr2pn000668e1e3bzi18y',
+                        fileurl:
+                            'http://127.0.0.1:8080/images/프사.svg',
+                        imageType: 'svg',
+                        dimension: {
+                            width: 289,
+                            height: 302
+                        }
+                    }
+                ],
+                sounds: []
+            }
+        ];
+
+        /*
+         * 팝업 생성
+         */
+        const popup = new PopupClass({
+            container: document.getElementById('entry-tool-container'),
+            isShow: false,
+            theme: 'entry',
+
+            data: {
+                data: {
+                    imageBaseUrl: 'https://playentry.org/uploads/',
+                    data: officialSpriteData
+                }
+            }
+        });
+
+        /*
+         * 현재 열려 있는 매니저 종류
+         */
+        let currentType = null;
+
+        /*
+         * currentType(sprite/picture/sound)에 맞게 items를 실제 WS에 반영하는 공통 처리
+         * -> select 탭에서 추가할 땐 'submit' 이벤트, upload 탭에서 추가할 땐 'uploads' 이벤트로
+         *    서로 다르게 들어오기 때문에 공통 함수로 뽑아서 둘 다 사용합니다.
+         */
+        const applyItemsByType = (items) => {
+            if (!Array.isArray(items) || items.length === 0) {
+                return;
+            }
+
+            if (currentType === 'sprite') {
+                items.forEach((spriteItem) => {
+                    const item = JSON.parse(JSON.stringify(spriteItem));
+
+                    if (item.label && item.label.ko) {
+                        item.name = item.label.ko;
+                    }
+
+                    if (!item.id) {
+                        item.id = Entry.generateHash();
+                    }
+
+                    if (item.pictures && Array.isArray(item.pictures)) {
+                        item.pictures.forEach((picture) => {
+                            const ext = picture.imageType || 'png';
+
+                            if (!picture.fileurl && picture.filename) {
+                                picture.fileurl =
+                                    `https://playentry.org/uploads/` +
+                                    `${picture.filename.substring(0, 2)}/` +
+                                    `${picture.filename.substring(2, 4)}/` +
+                                    `image/` +
+                                    `${picture.filename}.${ext}`;
+                            }
+
+                            if (!picture.id) {
+                                picture.id = Entry.generateHash();
+                            }
+                        });
+                    } else {
+                        // 업로드 탭을 통해 들어온 sprite의 경우 pictures가 비어있을 수 있으므로
+                        // 업로드된 이미지 자체를 picture로 보정
+                        item.pictures = item.pictures || [];
+                        if (item.fileurl && item.pictures.length === 0) {
+                            item.pictures.push({
+                                id: Entry.generateHash(),
+                                name: item.name,
+                                label: item.label,
+                                filename: item.filename,
+                                fileurl: item.fileurl,
+                                imageType: item.imageType || 'png',
+                                dimension: item.dimension || { width: 100, height: 100 },
+                            });
+                        }
+                    }
+
+                    // sprite 오브젝트는 sounds, category가 필수이므로 없으면 보정
+                    item.sounds = item.sounds || [];
+                    item.category = item.category || { main: 'new', sub: null };
+
+                    const object = {
+                        id: Entry.generateHash(),
+                        name: item.name || '오브젝트',
+                        objectType: 'sprite',
+                        sprite: item,
+                    };
+
+                    Entry.container.addObject(object, 0);
+                });
+
+                return;
+            }
+
+            if (currentType === 'picture') {
+                items.forEach((pictureItem) => {
+                    const item = {
+                        ...pictureItem,
+                        id: Entry.generateHash(),
+                        imageType: pictureItem.imageType || 'png',
+                    };
+
+                    Entry.playground.addPicture(item, true);
+                });
+
+                return;
+            }
+
+            if (currentType === 'sound') {
+                items.forEach((soundItem) => {
+                    const item = {
+                        ...soundItem,
+                        id: Entry.generateHash(),
+                    };
+
+                    Entry.playground.addSound(item, true);
+                });
+            }
+        };
+
+        /*
+         * 팝업에서 "추가"를 눌렀을 때 (select 탭)
+         * -> 실제로 넘어오는 datas는 배열이 아니라 { selected: [...] } 형태이므로
+         *    datas.selected를 꺼내서 사용해야 합니다.
+         */
+        popup.on('submit', (datas) => {
+            console.log('submit datas:', datas);
+
+            const items = Array.isArray(datas) ? datas : datas && datas.selected;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                console.warn('submit: 처리할 아이템이 없습니다.', datas);
+                return;
+            }
+
+            applyItemsByType(items);
+        });
+
+        /*
+         * 파일 올리기 탭에서 "추가하기"를 눌렀을 때 발생하는 이벤트
+         * -> submit과는 별개의 이벤트이므로 반드시 따로 등록해야 합니다.
+         */
+        popup.on('uploads', (data) => {
+            console.log('uploads data:', data);
+
+            const items = Array.isArray(data) ? data : data && data.uploads;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                console.warn('uploads: 처리할 아이템이 없습니다.', data);
+                return;
+            }
+
+            applyItemsByType(items);
+        });
+
+        /*
+         * 새로 그리기
+         * -> entry-offline(entryModalHelper.ts)의 실제 구현을 참고.
+         *    별도 그림판 팝업을 띄우는 게 아니라, 빈(투명) 이미지를 가진 오브젝트/모양을
+         *    먼저 추가한 뒤 모양 탭으로 화면을 전환해서, 그 안에서 Entry 내장 그림 편집
+         *    도구로 그리게 하는 방식입니다.
+         */
+        // 1x1 투명 PNG (외부 파일 없이 바로 사용 가능한 placeholder)
+        const blankPictureDataUrl =
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+        popup.on('draw', () => {
+            console.log('draw 이벤트 발생 - 빈 그림 추가 후 모양 탭으로 전환');
+
+            if (currentType === 'sprite') {
+                const object = {
+                    id: Entry.generateHash(),
+                    objectType: 'sprite',
+                    sprite: {
+                        name: `새 오브젝트${Entry.container.getAllObjects().length + 1}`,
+                        pictures: [
+                            {
+                                id: Entry.generateHash(),
+                                name: '새로운 모양',
+                                dimension: { width: 960, height: 540 },
+                                fileurl: blankPictureDataUrl,
+                                imageType: 'png',
+                            },
+                        ],
+                        sounds: [],
+                        category: { main: 'new' },
+                    },
                 };
-                Entry.creationChangedEvent = new Entry.Event(window);
-                Entry.init(document.getElementById('workspace'), initOption);
-                Entry.loadProject();
-            });
-        </script>
+
+                Entry.container.addObject(object, 0);
+                Entry.playground.changeViewMode('picture');
+                return;
+            }
+
+            if (currentType === 'picture') {
+                const item = {
+                    id: Entry.generateHash(),
+                    name: '새로운 모양',
+                    dimension: { width: 960, height: 540 },
+                    fileurl: blankPictureDataUrl,
+                    imageType: 'png',
+                };
+
+                Entry.playground.addPicture(item, true);
+            }
+        });
+
+        /*
+         * 파일 올리기 (임시 업로드)
+         * -> dummyUploads를 받아서 setData로 되돌려주지 않으면
+         *    팝업이 계속 응답을 기다리며 무한 로딩 상태에 머뭅니다.
+         */
+        popup.on('dummyUploads', async ({ formData, objectData }) => {
+            console.log('dummyUploads', formData, objectData);
+
+            try {
+                const files = formData
+                    ? Array.from(formData.values()).filter((v) => v instanceof File)
+                    : [];
+
+                const uploads = await Promise.all(
+                    files.map(
+                        (file) =>
+                            new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                    const ext =
+                                        (file.name.split('.').pop() || 'png').toLowerCase();
+                                    const fileurl = reader.result;
+
+                                    // 실제 이미지 가로/세로를 측정해서 dimension에 반영
+                                    // (0x0으로 두면 렌더링 단계에서 내부 에러가 날 수 있음)
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        resolve({
+                                            id: Entry.generateHash(),
+                                            name: file.name,
+                                            label: { ko: file.name },
+                                            filename: file.name,
+                                            fileurl,
+                                            imageType: ext,
+                                            dimension: {
+                                                width: img.naturalWidth || 100,
+                                                height: img.naturalHeight || 100,
+                                            },
+                                        });
+                                    };
+                                    img.onerror = () => {
+                                        // 이미지로 못 읽는 파일(svg 예외 케이스 등) 대비 기본값
+                                        resolve({
+                                            id: Entry.generateHash(),
+                                            name: file.name,
+                                            label: { ko: file.name },
+                                            filename: file.name,
+                                            fileurl,
+                                            imageType: ext,
+                                            dimension: { width: 100, height: 100 },
+                                        });
+                                    };
+                                    img.src = fileurl;
+                                };
+                                reader.readAsDataURL(file);
+                            })
+                    )
+                );
+
+                // 업로드 임시 데이터를 팝업 화면에 반영 (이게 있어야 로딩이 끝남)
+                popup.setData({
+                    data: { uploads, data: [] },
+                });
+            } catch (err) {
+                console.error('dummyUploads 처리 실패', err);
+            }
+        });
+
+        popup.on('uploadFail', (data) => {
+            console.error('upload fail', data);
+            alert(`${data?.messageParent || ''}${data?.message || '업로드에 실패했습니다.'}`);
+        });
+
+        /*
+         * 글상자
+         */
+        popup.on('write', (data) => {
+            const object = {
+                id: Entry.generateHash(),
+                name: '글상자',
+                text: data.text,
+
+                options: {
+                    font: data.font,
+                    bold: false,
+                    underLine: false,
+                    italic: false,
+                    strike:
+                        (data.effects &&
+                            data.effects.through) ||
+                        false,
+                    colour:
+                        (data.effects &&
+                            data.effects.color) ||
+                        '#000000',
+                    background:
+                        (data.effects &&
+                            data.effects.backgroundColor) ||
+                        '#ffffff',
+                    lineBreak: data.writeType !== 'one',
+                    ...(data.effects || {})
+                },
+
+                objectType: 'textBox',
+
+                sprite: {
+                    sounds: [],
+                    pictures: []
+                }
+            };
+
+            Entry.container.addObject(object, 0);
+        });
+
+        /*
+         * Entry 매니저 이벤트
+         */
+        const addEventListener =
+            Entry.addEventListener.bind(Entry);
+
+        const removeAllEventListener =
+            Entry.removeAllEventListener.bind(Entry);
+
+        /*
+         * 오브젝트 추가
+         */
+        removeAllEventListener('openSpriteManager');
+
+        addEventListener('openSpriteManager', () => {
+            currentType = 'sprite';
+
+            popup.show(
+                { type: 'sprite' },
+                {
+                    sidebar: spriteSidebarData,
+
+                    data: {
+                        imageBaseUrl:
+                            'https://playentry.org/uploads/',
+                        data: officialSpriteData
+                    }
+                }
+            );
+        });
+
+        /*
+         * 그림 추가
+         */
+        removeAllEventListener('openPictureManager');
+
+        addEventListener('openPictureManager', () => {
+            currentType = 'picture';
+
+            // sidebar/data를 명시적으로 비워서 sprite 팝업에서 쓰던 데이터가
+            // Object.assign으로 그대로 남아있지 않도록 함
+            popup.show(
+                { type: 'picture' },
+                {
+                    sidebar: {},
+                    data: { imageBaseUrl: '', data: [] },
+                }
+            );
+        });
+
+        /*
+         * 소리 추가
+         */
+        removeAllEventListener('openSoundManager');
+
+        addEventListener('openSoundManager', () => {
+            currentType = 'sound';
+
+            // 마찬가지로 sidebar/data 초기화
+            popup.show(
+                { type: 'sound' },
+                {
+                    sidebar: {},
+                    data: { imageBaseUrl: '', data: [] },
+                }
+            );
+        });
+    });
+</script>
     </body>
 </html>
