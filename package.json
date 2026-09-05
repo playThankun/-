@@ -33,7 +33,6 @@
     },
     "license": "Apache-2.0",
     "dependencies": {
-        "entry-tool": "git+https://github.com/entrylabs/entry-tool.git#dist/develop",
         "@entrylabs/event": "^1.0.3",
         "@mediapipe/tasks-vision": "^0.10.3",
         "@tensorflow/tfjs": "^4.17.0",
