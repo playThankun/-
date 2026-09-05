@@ -110,10 +110,10 @@ Entry.getStartProject = function (mediaFilePath) {
             {
                 id: '7y0y',
                 // 기본 오브젝트 이름을 땡쿤으로 교체
-                name: '땡쿤',
+                name: '증발한 오브젝트',
                 label: {
-                    ko: '땡쿤',
-                    en: 'Thankun',
+                    ko: '증발한 오브젝트',
+                    en: 'Evaporated Object',
                 },
                 script: [
                     [
@@ -124,7 +124,7 @@ Entry.getStartProject = function (mediaFilePath) {
                         },
                         {
                             type: 'repeat_basic',
-                            statements: [[{ type: 'move_direction' }]],
+                            statements: [[{ type: 'stop_run' }]],
                         },
                     ],
                 ],
@@ -146,8 +146,8 @@ Entry.getStartProject = function (mediaFilePath) {
                             name: '땡쿤_1',
                             imageType: 'svg',
                             dimension: {
-                                width: 289,
-                                height: 302,
+                                width: 0,
+                                height: 0,
                             },
                         },
                     ],
@@ -161,8 +161,8 @@ Entry.getStartProject = function (mediaFilePath) {
                     scaleY: 1,
                     rotation: 0,
                     direction: 90,
-                    width: 289,
-                    height: 302,
+                    width: 0,
+                    height: 0,
                     visible: true,
                 },
                 lock: false,
