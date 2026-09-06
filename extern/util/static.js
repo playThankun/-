@@ -74,7 +74,7 @@ EntryStatic.getAllBlocks = function () {
                 'stop_object',
                 'stop_run',
                 'restart_project',
-                'switch_scope',
+                
                 'when_clone_start',
                 'create_clone',
                 'delete_clone',
