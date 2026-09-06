@@ -21,6 +21,7 @@
         "url": "https://github.com/entrylabs/entryjs/issues"
     },
     "scripts": {
+        "server": "node server.js",
         "lint": "cross-env NODE_ENV=lint webpack -w",
         "serve:webgl": "cross-env NODE_ENV=serve webpack-dev-server --open  --hot --host 127.0.0.1 --webgl=true",
         "serve": "cross-env NODE_ENV=serve webpack-dev-server --open --hot --host 127.0.0.1",
@@ -67,7 +68,14 @@
         "uid": "^0.0.2",
         "webpack": "^5.85.0",
         "worker-loader": "^3.0.8",
-        "xss-filters": "^1.2.7"
+        "xss-filters": "^1.2.7",
+        "bcrypt": "^5.1.1",
+    "connect-mongo": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.3.0"
     },
     "devDependencies": {
         "@babel/core": "^7.22.1",
