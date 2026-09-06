@@ -1630,7 +1630,7 @@ module.exports = {
                     ],
                 },
             },
-            show_list: {
+show_list: {
                 color: EntryStatic.colorSet.block.default.VARIABLE,
                 outerLine: EntryStatic.colorSet.block.darken.VARIABLE,
                 skeleton: 'basic',
@@ -1698,7 +1698,7 @@ module.exports = {
                                     type: 'DropdownDynamic',
                                     value: null,
                                     menuName: 'lists',
-                                    fontSize: 11,
+                                    fontSize: 10,
                                     arrowColor: EntryStatic.colorSet.arrow.default.VARIABLE,
                                     converter: Entry.block.converters.returnStringKey,
                                 },
@@ -1775,13 +1775,194 @@ module.exports = {
                                     type: 'DropdownDynamic',
                                     value: null,
                                     menuName: 'lists',
-                                    fontSize: 11,
+                                    fontSize: 10,
                                     arrowColor: EntryStatic.colorSet.arrow.default.VARIABLE,
                                     converter: Entry.block.converters.returnStringKey,
                                 },
                             ],
                         },
                     ],
+                },
+            },
+            delete_all_list: {
+                color: EntryStatic.colorSet.block.default.VARIABLE,
+                outerLine: EntryStatic.colorSet.block.darken.VARIABLE,
+                skeleton: 'basic',
+                params: [
+                    {
+                        type: 'DropdownDynamic',
+                        value: null,
+                        menuName: 'lists',
+                        fontSize: 10,
+                        bgColor: EntryStatic.colorSet.block.darken.VARIABLE,
+                        arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
+                    },
+                    {
+                        type: 'Indicator',
+                        img: 'block_icon/variable_icon.svg',
+                        size: 11,
+                    },
+                ],
+                def: {
+                    params: [null, null],
+                    type: 'delete_all_list',
+                },
+                paramsKeyMap: {
+                    LIST: 0,
+                },
+                class: 'list',
+                isNotFor: ['listNotExist'],
+                func: function (sprite, script) {
+                    const listId = script.getField('LIST', script);
+                    const list = Entry.variableContainer.getList(listId, sprite);
+
+                    if (list) {
+                        if (typeof list.clear === 'function') {
+                            list.clear();
+                        } else {
+                            list.array_ = [];
+                            if (typeof list.updateView === 'function') {
+                                list.updateView();
+                            }
+                        }
+                    }
+                    return script.callReturn();
+                },
+            },
+            reverse_list: {
+                color: EntryStatic.colorSet.block.default.VARIABLE,
+                outerLine: EntryStatic.colorSet.block.darken.VARIABLE,
+                skeleton: 'basic',
+                params: [
+                    {
+                        type: 'DropdownDynamic',
+                        value: null,
+                        menuName: 'lists',
+                        fontSize: 10,
+                        bgColor: EntryStatic.colorSet.block.darken.VARIABLE,
+                        arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
+                    },
+                    {
+                        type: 'Indicator',
+                        img: 'block_icon/variable_icon.svg',
+                        size: 11,
+                    },
+                ],
+                def: {
+                    params: [null, null],
+                    type: 'reverse_list',
+                },
+                paramsKeyMap: {
+                    LIST: 0,
+                },
+                class: 'list',
+                isNotFor: ['listNotExist'],
+                func(sprite, script) {
+                    const listId = script.getField('LIST', script);
+                    const list = Entry.variableContainer.getList(listId, sprite);
+
+                    if (list && list.array_) {
+                        list.array_.reverse();
+                        if (typeof list.updateView === 'function') {
+                            list.updateView();
+                        }
+                    }
+                    return script.callReturn();
+                },
+            },
+            index_of_list: {
+                color: EntryStatic.colorSet.block.default.VARIABLE,
+                outerLine: EntryStatic.colorSet.block.darken.VARIABLE,
+                skeleton: 'basic_string_field',
+                params: [
+                    {
+                        type: 'DropdownDynamic',
+                        value: null,
+                        menuName: 'lists',
+                        fontSize: 10,
+                        bgColor: EntryStatic.colorSet.block.darken.VARIABLE,
+                        arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
+                    },
+                    {
+                        type: 'Block',
+                        accept: 'string',
+                    },
+                ],
+                def: {
+                    params: [
+                        null,
+                        {
+                            type: 'text',
+                            params: ['10'],
+                        },
+                    ],
+                    type: 'index_of_list',
+                },
+                paramsKeyMap: {
+                    LIST: 0,
+                    VALUE: 1,
+                },
+                class: 'list_element',
+                isNotFor: ['listNotExist'],
+                func(sprite, script) {
+                    const listId = script.getField('LIST', script);
+                    const searchValue = script.getValue('VALUE', script);
+                    const list = Entry.variableContainer.getList(listId, sprite);
+
+                    if (list && list.array_) {
+                        const index = list.array_.findIndex((item) => String(item.data) === String(searchValue));
+                        return index !== -1 ? index + 1 : 0;
+                    }
+                    return 0;
+                },
+            },
+            remove_duplicate_list: {
+                color: EntryStatic.colorSet.block.default.VARIABLE,
+                outerLine: EntryStatic.colorSet.block.darken.VARIABLE,
+                skeleton: 'basic',
+                params: [
+                    {
+                        type: 'DropdownDynamic',
+                        value: null,
+                        menuName: 'lists',
+                        fontSize: 10,
+                        bgColor: EntryStatic.colorSet.block.darken.VARIABLE,
+                        arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
+                    },
+                    {
+                        type: 'Indicator',
+                        img: 'block_icon/variable_icon.svg',
+                        size: 11,
+                    },
+                ],
+                def: {
+                    params: [null, null],
+                    type: 'remove_duplicate_list',
+                },
+                paramsKeyMap: {
+                    LIST: 0,
+                },
+                class: 'list',
+                isNotFor: ['listNotExist'],
+                func(sprite, script) {
+                    const listId = script.getField('LIST', script);
+                    const list = Entry.variableContainer.getList(listId, sprite);
+
+                    if (list && list.array_) {
+                        const seen = new Set();
+                        list.array_ = list.array_.filter((item) => {
+                            const val = String(item.data);
+                            if (seen.has(val)) {
+                                return false;
+                            }
+                            seen.add(val);
+                            return true;
+                        });
+                        if (typeof list.updateView === 'function') {
+                            list.updateView();
+                        }
+                    }
+                    return script.callReturn();
                 },
             },
         };
