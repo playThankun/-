@@ -932,39 +932,8 @@ module.exports = {
                     return Entry.STATIC.BREAK;
                 },
             },
-            switch_scope: {
-                color: '#7C7C7C',
-                skeleton: 'basic',
-                template: '%1 오브젝트 기준으로 실행하기 %2',
-                statements: [],
-                params: [
-                    {
-                        type: 'DropdownDynamic',
-                        value: null,
-                        menuName: 'sprites',
-                        fontSize: 11,
-                    },
-                    {
-                        type: 'Indicator',
-                        color: '#6B6B6B',
-                        size: 12,
-                    },
-                ],
-                events: {},
-                def: {
-                    params: [null],
-                    type: 'switch_scope',
-                },
-                paramsKeyMap: {
-                    VALUE: 0,
-                },
-                class: 'checker',
-                isNotFor: ['checker'],
-                func(sprite, script) {
-                    const obj = Entry.container.getObject(this.block.params[0]);
-                    this.executor.entity = obj.entity;
-                },
-            },
+
+
             is_answer_submited: {
                 color: '#7C7C7C',
                 skeleton: 'basic',

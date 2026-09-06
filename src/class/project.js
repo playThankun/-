@@ -139,15 +139,14 @@ Entry.getStartProject = function (mediaFilePath) {
                     pictures: [
                         {
                             id: 'vx80',
-                            // media 폴더에 땡쿤 이미지를 넣고 파일명을 여기에 맞춰주세요
-                            // (예: media/thankun.svg)
+
                             fileurl: `${mediaFilePath}images/thankun.svg`,
                             thumbUrl: `${mediaFilePath}images/thankun.svg`,
                             name: '땡쿤_1',
                             imageType: 'svg',
                             dimension: {
-                                width: 0,
-                                height: 0,
+                                width: 1,
+                                height: 1,
                             },
                         },
                     ],
@@ -161,8 +160,8 @@ Entry.getStartProject = function (mediaFilePath) {
                     scaleY: 1,
                     rotation: 0,
                     direction: 90,
-                    width: 0,
-                    height: 0,
+                    width: 1,
+                    height: 1,
                     visible: true,
                 },
                 lock: false,
