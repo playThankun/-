@@ -17,7 +17,7 @@ module.exports = {
                     },
                     {
                         type: 'Indicator',
-                        img: `block_icon/프사.svg`,
+                        img: `block_icon/computer_icon.svg`,
                         size: 11,
                     },
                 ],
