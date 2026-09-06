@@ -140,6 +140,8 @@ Lang.CommandTooltip = {
     1101: '확장 블록 추가하기@@<b>확장 블록 블러오기</b>를 클릭합니다.',
 };
 Lang.Blocks = {
+    COMPUTER: '컴퓨터',
+    copy_to_clipboard: '%1 내용을 클립보드에 복사하기 %2',
     download_guide: '• 연결 안내 다운로드',
     dictionary: '사전',
     ai_utilize: '인공지능',
@@ -8522,6 +8524,7 @@ Lang.template = {
     run: '',
     reverse_of_string: '%1 %2 %3',
     video_capture_for_image_test: '비디오 화면을 학습한 모델로 분류 %1 %2',
+
 };
 Lang.TextCoding = {
     block_name: '블록명',

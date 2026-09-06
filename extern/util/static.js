@@ -294,6 +294,12 @@ EntryStatic.getAllBlocks = function () {
             ],
         },
         {
+            category: 'computer',
+            blocks: [
+                'copy_to_clipboard'
+            ],
+        },
+        {
             category: 'ai_utilize',
             blocks: [
                 'aiUtilizeBlockAddButton',
@@ -722,6 +728,7 @@ EntryStatic.colorSet = {
             EXPANSION: '#FF8888',
             AI_UTILIZE: '#FF8888',
             HIDDEN: '#FFFFFF',
+            COMPUTER: '#FFFFFF',
         },
     },
     block: {
@@ -743,6 +750,7 @@ EntryStatic.colorSet = {
             AI_UTILIZE: '#8222ff',
             HIDDEN: '#8aa3b2',
             AI_LEARNING: '#8222ff',
+            COMPUTER: '#4cc98f',
         },
         lighten: {
             START: '#3bce3b',
@@ -762,6 +770,7 @@ EntryStatic.colorSet = {
             AI_UTILIZE: '#ffaeae',
             HIDDEN: '#ffaeae',
             AI_LEARNING: '#8222ff',
+            COMPUTER: '#66f7ff',
         },
         darken: {
             START: '#009400',
@@ -781,6 +790,8 @@ EntryStatic.colorSet = {
             AI_UTILIZE: '#670bdd',
             HIDDEN: '#728997',
             AI_LEARNING: '#670bdd',
+            COMPUTER: 'rgb(37, 139, 117)',
+            
         },
         emphasize: {
             '#00b400': '#5BC982', //START
@@ -795,7 +806,7 @@ EntryStatic.colorSet = {
             '#dd47d8': '#F279F2', //VARIABLE
             '#de5c04': '#DD884E', //FUNC
             '#00b6b1': '#09BAB5', //HARDWARE
-            //Not guided emphasize color for EXPANSION
+            '#00f2ff': '#99f9ff', //COMPUTER
         },
     },
     common: {

@@ -1106,6 +1106,7 @@ Lang.Blocks = {
     HAMSTER_play_note_for_2: '',
     HAMSTER_play_note_for_3: '음을',
     HAMSTER_play_note_for_4: '박자 연주하기',
+    COMPUTER: '컴퓨터',
     HAMSTER_rest_for_1: '',
     HAMSTER_rest_for_2: '박자 쉬기',
     HAMSTER_change_tempo_by_1: '연주 속도를',

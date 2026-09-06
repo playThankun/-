@@ -18,6 +18,7 @@ const basicBlockList = [
     require('./block_variable'),
     require('./block_func'),
     require('./block_analysis'),
+    require('./block_computer'),
 ];
 
 const destroyBlockList = [];
