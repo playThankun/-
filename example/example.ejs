@@ -206,10 +206,10 @@
          * sidebar/data 선언
          */
         const spriteSidebarData = {
-            entrybot_friends: {
-                id: 'entrybot_friends',
-                name: '엔트리봇',
-                value: 'entrybot_friends',
+            thankun: {
+                id: 'thankun',
+                name: '땡쿤',
+                value: 'thankun',
                 sub: {
                     all: {
                         id: '',
@@ -223,21 +223,21 @@
         const officialSpriteData = [
             {
                 id: Entry.generateHash(),
-                name: '점프 엔트리봇',
+                name: '땡쿤',
                 label: {
-                    ko: '점프 엔트리봇',
-                    en: 'Jumping Entrybot'
+                    ko: '땡쿤',
+                    en: 'Thankun'
                 },
                 category: {
-                    main: 'entrybot_friends',
+                    main: 'thankun',
                     sub: 'all'
                 },
                 pictures: [
                     {
                         id: Entry.generateHash(),
-                        name: '점프 엔트리봇_1',
+                        name: '땡쿤',
                         label: {
-                            ko: '점프 엔트리봇_1'
+                            ko: '와샌즈아시는땡쿤!'
                         },
                         filename: '83862329mtmwr2pn000668e1e3bzi18y',
                         fileurl:
@@ -501,7 +501,7 @@
                                         });
                                     };
                                     img.onerror = () => {
-                                        // 이미지로 못 읽는 파일(svg 예외 케이스 등) 대비 기본값
+                                        // 이미지로 못 읽는 파일(svg 예외 케이스 등) 대비 기본값ㅇ
                                         resolve({
                                             id: Entry.generateHash(),
                                             name: file.name,

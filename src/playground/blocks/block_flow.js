@@ -1,7 +1,6 @@
 module.exports = {
     getBlocks() {
         return {
-            
             wait_second: {
                 color: EntryStatic.colorSet.block.default.FLOW,
                 outerLine: EntryStatic.colorSet.block.darken.FLOW,
@@ -601,7 +600,7 @@ module.exports = {
 
                     switch (script.getField('TARGET', script)) {
                         case 'all':
-                            Entry.container.mapObject(function(obj) {
+                            Entry.container.mapObject(function (obj) {
                                 if (!obj.objectType) {
                                     return;
                                 }
@@ -635,7 +634,7 @@ module.exports = {
                             return script.callReturn();
                         }
                         case 'other_objects':
-                            Entry.container.mapObject(function(obj) {
+                            Entry.container.mapObject(function (obj) {
                                 if (!obj.objectType || obj === object) {
                                     return;
                                 }
@@ -675,103 +674,100 @@ module.exports = {
                 },
             },
             stop_run: {
-            color: EntryStatic.colorSet.block.default.FLOW,
-            outerLine: EntryStatic.colorSet.block.darken.FLOW,
-            skeleton: 'basic',
-            statements: [],
-            params: [
-                {
-                    type: 'Indicator',
-                    img: 'block_icon/flow_icon.svg',
-                    size: 11,
+                color: EntryStatic.colorSet.block.default.FLOW,
+                outerLine: EntryStatic.colorSet.block.darken.FLOW,
+                skeleton: 'basic',
+                statements: [],
+                params: [
+                    {
+                        type: 'Indicator',
+                        img: 'block_icon/flow_icon.svg',
+                        size: 11,
+                    },
+                ],
+                events: {},
+                def: {
+                    params: [null],
+                    type: 'stop_run',
                 },
-            ],
-            events: {},
-            def: {
-                params: [null],
-                type: 'stop_run',
-            },
-            class: 'terminate',
-            isNotFor: [],
-            func(sprite, script) {
-                return Entry.engine.toggleStop();
-            },
-            syntax: { js: [], py: ['stop_project()'] },
-        },
-        switch_scope: {
-    color: EntryStatic.colorSet.block.default.FLOW,
-    outerLine: EntryStatic.colorSet.block.darken.FLOW,
-    skeleton: 'basic',
-    template: '%1 오브젝트 기준으로 실행하기 %2',
-    statements: [],
-    params: [
-
-        {
-        value: null,
-     menuName: 'sprites',
-    fontSize: 10,
-textColor: '#fff',
-    bgColor: EntryStatic.colorSet.block.darken.FLOW,
-    arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
-        },
-    {
-                type: 'Indicator',
-                img: 'block_icon/flow_icon.svg',
-                size: 11,
-},
-    ],
-    events: {},
-    def: {
-        params: [null],
-        type: 'switch_scope',
-    },
-    paramsKeyMap: {
-        VALUE: 0,
-    },
-    class: 'monkey',
-    isNotFor: [],
-
-    func(sprite, script) {
-        // 최초 실행
-        if (!script.isStart) {
-            script.isStart = true;
-            script.timeFlag = 1;
-
-            const obj = Entry.container.getObject(
-                this.block.params[0]
-            );
-
-            if (obj && obj.entity) {
-                this.executor.entity = obj.entity;
-            }
-
-            const blockId = script.block.id;
-
-            // 엔트리의 0초 기다리기와 동일하게 한 번 yield
-            Entry.TimeWaitManager.add(
-                blockId,
-                () => {
-                    script.timeFlag = 0;
+                class: 'terminate',
+                isNotFor: [],
+                func(sprite, script) {
+                    return Entry.engine.toggleStop();
                 },
-                0
-            );
+                syntax: { js: [], py: ['stop_project()'] },
+            },
+            switch_scope: {
+                color: EntryStatic.colorSet.block.default.FLOW,
+                outerLine: EntryStatic.colorSet.block.darken.FLOW,
+                skeleton: 'basic',
+                template: '%1 오브젝트 기준으로 실행하기 %2',
+                statements: [],
+                params: [
+                    {
+                        type: 'DropdownDynamic',
+                        value: null,
+                        menuName: 'sprites',
+                        fontSize: 10,
+                        textColor: '#fff',
+                        bgColor: EntryStatic.colorSet.block.darken.FLOW,
+                        arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
+                    },
+                    {
+                        type: 'Indicator',
+                        img: 'block_icon/flow_icon.svg',
+                        size: 11,
+                    },
+                ],
+                events: {},
+                def: {
+                    params: [null],
+                    type: 'switch_scope',
+                },
+                paramsKeyMap: {
+                    VALUE: 0,
+                },
+                class: 'monkey',
+                isNotFor: [],
+                func(sprite, script) {
+                    // 최초 실행
+                    if (!script.isStart) {
+                        script.isStart = true;
+                        script.timeFlag = 1;
 
-            return script;
-        }
+                        const obj = Entry.container.getObject(this.block.params[0]);
 
-        // 아직 대기 중
-        if (script.timeFlag == 1) {
-            return script;
-        }
+                        if (obj && obj.entity) {
+                            this.executor.entity = obj.entity;
+                        }
 
-        // 대기 완료
-        delete script.timeFlag;
-        delete script.isStart;
+                        const blockId = script.block.id;
 
-        Entry.engine.isContinue = false;
-        return script.callReturn();
-    },
-},
+                        // 엔트리의 0초 기다리기와 동일하게 한 번 yield
+                        Entry.TimeWaitManager.add(
+                            blockId,
+                            () => {
+                                script.timeFlag = 0;
+                            },
+                            0
+                        );
+
+                        return script;
+                    }
+
+                    // 아직 대기 중
+                    if (script.timeFlag == 1) {
+                        return script;
+                    }
+
+                    // 대기 완료
+                    delete script.timeFlag;
+                    delete script.isStart;
+
+                    Entry.engine.isContinue = false;
+                    return script.callReturn();
+                },
+            },
             restart_project: {
                 color: EntryStatic.colorSet.block.default.FLOW,
                 outerLine: EntryStatic.colorSet.block.darken.FLOW,
@@ -798,7 +794,6 @@ textColor: '#fff',
                 },
                 syntax: { js: [], py: ['Entry.start_again()'] },
             },
-            
             when_clone_start: {
                 color: EntryStatic.colorSet.block.default.FLOW,
                 outerLine: EntryStatic.colorSet.block.darken.FLOW,
@@ -951,7 +946,7 @@ textColor: '#fff',
                 isNotFor: [],
                 func(sprite, script) {
                     let clonedEntities = sprite.parent.getClonedEntities();
-                    clonedEntities.map(function(entity) {
+                    clonedEntities.map(function (entity) {
                         entity.removeClone();
                     });
                     clonedEntities = null;
