@@ -221,80 +221,6 @@ module.exports = {
                     ],
                 },
             },
-    switch_scope: {
-    color: EntryStatic.colorSet.block.default.FLOW,
-    outerLine: EntryStatic.colorSet.block.darken.FLOW,
-    skeleton: 'basic',
-    template: '%1 오브젝트 기준으로 실행하기 %2',
-    statements: [],
-    params: [
-
-        {
-        value: null,
-     menuName: 'sprites',
-    fontSize: 10,
-textColor: '#fff',
-    bgColor: EntryStatic.colorSet.block.darken.FLOW,
-    arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
-        },
-    {
-                type: 'Indicator',
-                img: 'block_icon/flow_icon.svg',
-                size: 11,
-},
-    ],
-    events: {},
-    def: {
-        params: [null],
-        type: 'switch_scope',
-    },
-    paramsKeyMap: {
-        VALUE: 0,
-    },
-    class: 'monkey',
-    isNotFor: [],
-
-    func(sprite, script) {
-        // 최초 실행
-        if (!script.isStart) {
-            script.isStart = true;
-            script.timeFlag = 1;
-
-            const obj = Entry.container.getObject(
-                this.block.params[0]
-            );
-
-            if (obj && obj.entity) {
-                this.executor.entity = obj.entity;
-            }
-
-            const blockId = script.block.id;
-
-            // 엔트리의 0초 기다리기와 동일하게 한 번 yield
-            Entry.TimeWaitManager.add(
-                blockId,
-                () => {
-                    script.timeFlag = 0;
-                },
-                0
-            );
-
-            return script;
-        }
-
-        // 아직 대기 중
-        if (script.timeFlag == 1) {
-            return script;
-        }
-
-        // 대기 완료
-        delete script.timeFlag;
-        delete script.isStart;
-
-        Entry.engine.isContinue = false;
-        return script.callReturn();
-    },
-},
             repeat_while_true: {
                 color: EntryStatic.colorSet.block.default.FLOW,
                 outerLine: EntryStatic.colorSet.block.darken.FLOW,
@@ -772,6 +698,80 @@ textColor: '#fff',
             },
             syntax: { js: [], py: ['stop_project()'] },
         },
+        switch_scope: {
+    color: EntryStatic.colorSet.block.default.FLOW,
+    outerLine: EntryStatic.colorSet.block.darken.FLOW,
+    skeleton: 'basic',
+    template: '%1 오브젝트 기준으로 실행하기 %2',
+    statements: [],
+    params: [
+
+        {
+        value: null,
+     menuName: 'sprites',
+    fontSize: 10,
+textColor: '#fff',
+    bgColor: EntryStatic.colorSet.block.darken.FLOW,
+    arrowColor: EntryStatic.colorSet.arrow.default.DEFAULT,
+        },
+    {
+                type: 'Indicator',
+                img: 'block_icon/flow_icon.svg',
+                size: 11,
+},
+    ],
+    events: {},
+    def: {
+        params: [null],
+        type: 'switch_scope',
+    },
+    paramsKeyMap: {
+        VALUE: 0,
+    },
+    class: 'monkey',
+    isNotFor: [],
+
+    func(sprite, script) {
+        // 최초 실행
+        if (!script.isStart) {
+            script.isStart = true;
+            script.timeFlag = 1;
+
+            const obj = Entry.container.getObject(
+                this.block.params[0]
+            );
+
+            if (obj && obj.entity) {
+                this.executor.entity = obj.entity;
+            }
+
+            const blockId = script.block.id;
+
+            // 엔트리의 0초 기다리기와 동일하게 한 번 yield
+            Entry.TimeWaitManager.add(
+                blockId,
+                () => {
+                    script.timeFlag = 0;
+                },
+                0
+            );
+
+            return script;
+        }
+
+        // 아직 대기 중
+        if (script.timeFlag == 1) {
+            return script;
+        }
+
+        // 대기 완료
+        delete script.timeFlag;
+        delete script.isStart;
+
+        Entry.engine.isContinue = false;
+        return script.callReturn();
+    },
+},
             restart_project: {
                 color: EntryStatic.colorSet.block.default.FLOW,
                 outerLine: EntryStatic.colorSet.block.darken.FLOW,
