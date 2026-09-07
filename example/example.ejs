@@ -230,57 +230,71 @@ body {
         box-shadow:
             0 1px 3px rgba(0, 0, 0, 0.10);
     }
+    .ent-save-button {
+    height: 36px;
+    padding: 0 15px;
+    border: 0;
+    border-radius: 9px;
+    background: #4f7cff;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.15s ease;
+}
+
+.ent-save-button:hover {
+    background: #416fe9;
+    transform: translateY(-1px);
+}
+
+.ent-save-button:active {
+    transform: translateY(0);
+}
+
+.ent-save-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none;
+}
 </style>
 
 <section class="entryjs-toolbar">
-
-    <!-- 로고 -->
     <div class="entryjs-brand">
-        <span>  </span>
         <span>Bickle</span>
     </div>
 
     <div class="toolbar-divider"></div>
 
-    <!--
-    <div class="toolbar-file">
-    <input
-        type="file"
-        id="litemodule"
-        accept=".js"
-        style="display: none;"
-    />
-
     <button
-        type="button"
-        class="file-button"
-        onclick="document.getElementById('litemodule').click()"
-    >
-        <span id="moduleFileText">모듈 선택</span>
-    </button>
+    type="button"
+    class="file-button ent-save-button"
+    id="entDownloadButton"
+    onclick="downloadENT()"
+>
+    💾 저장
+</button>
 
-    <input
-        type="text"
-        id="litemodulename"
-        class="module-name"
-        placeholder="모듈 이름"
-    />
+<button
+    type="button"
+    class="file-button"
+    id="entLoadButton"
+    onclick="document.getElementById('entFileInput').click()"
+>
+    📂 불러오기
+</button>
 
-    <button
-        type="button"
-        class="apply-button"
-        onclick="handleUpdate()"
-    >
-        적용
-    </button>
-</div>
-
+<input
+    type="file"
+    id="entFileInput"
+    accept=".ent,application/gzip"
+    style="display:none"
+    onchange="loadENT(this.files[0])"
+/>
 
     <div class="toolbar-spacer"></div>
--->
-    <!-- 에디터 모드 -->
-    <div class="mode-buttons">
 
+    <div class="mode-buttons">
         <button
             id="blockModeButton"
             class="mode-button active"
@@ -296,11 +310,10 @@ body {
         >
             &lt;/&gt; Python
         </button>
-
     </div>
-
 </section>
-        <div id="entry-tool-container"></div>
+
+<div id="entry-tool-container"></div>
 <div id="workspace"></div>
 
         <!--language-->
@@ -419,52 +432,531 @@ body {
         <% } %>
 
         <script>
-            function handleUpdate() {
-                const moduleInput = document.getElementById('litemodule');
-const moduleFileText = document.getElementById('moduleFileText');
+            function changeWorkspaceMode(mode) {
+                const workspace = Entry.getMainWS();
+                if (!workspace) return;
 
-moduleInput.addEventListener('change', function () {
-    if (this.files && this.files.length > 0) {
-        moduleFileText.textContent = this.files[0].name;
-    } else {
-        moduleFileText.textContent = '모듈 선택';
-    }
-});
-                const file = document.getElementById('litemodule').files[0];
-                const name = document.getElementById('litemodulename').value;
-                Entry.loadLiteTestModule(file, name);
+                const option = {};
+                if (mode === 'block') {
+                    option.boardType = Entry.Workspace.MODE_BOARD;
+                    option.textType = -1;
+                } else {
+                    option.boardType = Entry.Workspace.MODE_VIMBOARD;
+                    option.textType = Entry.Vim.TEXT_TYPE_PY;
+                    option.runType = Entry.Vim.WORKSPACE_MODE;
+                }
+
+                workspace.setMode(option);
+                document.getElementById('blockModeButton')?.classList.toggle('active', mode === 'block');
+                document.getElementById('pythonModeButton')?.classList.toggle('active', mode === 'python');
             }
 
-function changeWorkspaceMode(mode) {
-    const option = {};
+            const BICKLE_ENCODER = new TextEncoder();
 
-    if (mode === 'block') {
-        option.boardType = Entry.Workspace.MODE_BOARD;
-        option.textType = -1;
-    } else if (mode === 'python') {
-        option.boardType = Entry.Workspace.MODE_VIMBOARD;
-        option.textType = Entry.Vim.TEXT_TYPE_PY;
-        option.runType = Entry.Vim.WORKSPACE_MODE;
-    }
+            function bickleTarString(buf, offset, length, value) {
+                buf.set(BICKLE_ENCODER.encode(String(value)).subarray(0, length), offset);
+            }
 
-    const workspace = Entry.getMainWS();
+            function bickleTarHeader(path, size) {
+                const h = new Uint8Array(512);
+                bickleTarString(h, 0, 100, path);
+                bickleTarString(h, 100, 8, '0000644\0');
+                bickleTarString(h, 108, 8, '0000000\0');
+                bickleTarString(h, 116, 8, '0000000\0');
+                bickleTarString(h, 124, 12, Math.floor(size).toString(8).padStart(11, '0') + '\0');
+                bickleTarString(h, 136, 12, Math.floor(Date.now()/1000).toString(8).padStart(11, '0') + '\0');
+                for (let i=148;i<156;i++) h[i]=0x20;
+                h[156]=0x30;
+                bickleTarString(h,257,6,'ustar\0');
+                bickleTarString(h,263,2,'00');
+                let sum=0; for (const b of h) sum+=b;
+                bickleTarString(h,148,6,sum.toString(8).padStart(6,'0'));
+                h[154]=0; h[155]=0x20;
+                return h;
+            }
 
-    if (!workspace) {
-        console.error('entry workspace not found!');
-        return;
-    }
+            function bickleTarAdd(parts,path,data) {
+                if (!(data instanceof Uint8Array)) data=new Uint8Array(data);
+                parts.push(bickleTarHeader(path,data.length),data);
+                const pad=data.length%512;
+                if(pad) parts.push(new Uint8Array(512-pad));
+            }
 
-    workspace.setMode(option);
+            function bickleConcat(parts) {
+                const total=parts.reduce((n,p)=>n+p.length,0);
+                const out=new Uint8Array(total); let o=0;
+                for(const p of parts){out.set(p,o);o+=p.length;}
+                return out;
+            }
 
-    // 버튼 상태 변경
-    const blockButton = document.getElementById('blockModeButton');
-    const pythonButton = document.getElementById('pythonModeButton');
+            function bickleAsset(value) {
+                if(typeof value!=='string') return null;
+                const m=value.match(/\/uploads\/(.+)$/);
+                if(m) return {url:value,path:m[1]};
+                if(value.startsWith('uploads/')) return {url:'https://playentry.org/'+value,path:value.slice(8)};
+                if(value.startsWith('/uploads/')) return {url:'https://playentry.org'+value,path:value.slice(9)};
+                return null;
+            }
 
-    blockButton.classList.toggle('active', mode === 'block');
-    pythonButton.classList.toggle('active', mode === 'python');
-}
+            function bickleFindAssets(value,map=new Map()) {
+                if(value==null) return map;
+                if(typeof value==='string'){const a=bickleAsset(value);if(a)map.set(a.url,a.path);return map;}
+                if(Array.isArray(value)){value.forEach(v=>bickleFindAssets(v,map));return map;}
+                if(typeof value==='object')Object.values(value).forEach(v=>bickleFindAssets(v,map));
+                return map;
+            }
+
+            async function bickleGetBytes(url) {
+                if(url.startsWith('data:')){
+                    const i=url.indexOf(','); const meta=url.slice(0,i), data=url.slice(i+1);
+                    if(meta.includes(';base64')){const bin=atob(data),out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
+                    return BICKLE_ENCODER.encode(decodeURIComponent(data));
+                }
+                const r=await fetch(url,{credentials:'include'});
+                if(!r.ok) throw new Error('HTTP '+r.status);
+                return new Uint8Array(await r.arrayBuffer());
+            }
+
+            function bickleDownload(blob,name){
+                const u=URL.createObjectURL(blob),a=document.createElement('a');
+                a.href=u;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();
+                setTimeout(()=>URL.revokeObjectURL(u),1000);
+            }
+
+            async function downloadENT(){
+                const btn=document.getElementById('entDownloadButton');
+                try{
+                    if(typeof Entry?.exportProject!=='function') throw new Error('Entry.exportProject()를 찾을 수 없습니다.');
+                    btn.disabled=true;btn.textContent='⏳ 저장 중...';
+                    const project=Entry.exportProject();
+                    if(!project) throw new Error('프로젝트 데이터를 가져오지 못했습니다.');
+
+                    const parts=[];
+                    bickleTarAdd(parts,'temp/project.json',BICKLE_ENCODER.encode(JSON.stringify(project,null,4)));
+
+                    const assets=bickleFindAssets(project);
+                    let failed=0;
+                    for(const [url,path] of assets){
+                        try{
+                            const data=await bickleGetBytes(url);
+                            bickleTarAdd(parts,'temp/'+path,data);
+                        }catch(e){failed++;console.warn('[Bickle ENT] asset 실패',url,e);}
+                    }
+
+                    parts.push(new Uint8Array(1024));
+                    const tar=bickleConcat(parts);
+                    const gz=new Blob([tar]).stream().pipeThrough(new CompressionStream('gzip'));
+                    const blob=await new Response(gz).blob();
+                    const name=String(project.name||'Bickle 작품').replace(/[\\/:*?"<>|]/g,'_')+'.ent';
+                    bickleDownload(blob,name);
+                    if(failed) alert(`저장 완료!\n에셋 ${failed}개를 가져오지 못했습니다.`);
+                }catch(e){console.error('[Bickle ENT]',e);alert('작품 저장에 실패했습니다.\n\n'+e.message);}
+                finally{btn.disabled=false;btn.textContent='💾 저장';}
+            }
         </script>
-<!-- main script -->
+        <script>
+    /*
+     * ============================================
+     * Bickle .ent 불러오기
+     * ============================================
+     */
+
+    function bickleReadTarString(buf, start, length) {
+        const bytes = buf.subarray(start, start + length);
+        let end = bytes.indexOf(0);
+
+        if (end === -1) {
+            end = bytes.length;
+        }
+
+        return new TextDecoder().decode(bytes.subarray(0, end));
+    }
+
+    function bickleReadTarOctal(buf, start, length) {
+        const text = bickleReadTarString(buf, start, length)
+            .trim()
+            .replace(/\0/g, '');
+
+        return parseInt(text, 8) || 0;
+    }
+
+    function bickleParseTar(buffer) {
+        const buf =
+            buffer instanceof Uint8Array
+                ? buffer
+                : new Uint8Array(buffer);
+
+        const files = new Map();
+
+        let offset = 0;
+
+        while (offset + 512 <= buf.length) {
+            const header = buf.subarray(offset, offset + 512);
+
+            // TAR 종료 블록
+            let empty = true;
+
+            for (let i = 0; i < 512; i++) {
+                if (header[i] !== 0) {
+                    empty = false;
+                    break;
+                }
+            }
+
+            if (empty) {
+                break;
+            }
+
+            const name = bickleReadTarString(header, 0, 100);
+            const size = bickleReadTarOctal(header, 124, 12);
+            const type = header[156];
+
+            offset += 512;
+
+            if (offset + size > buf.length) {
+                throw new Error(
+                    '손상된 TAR 파일입니다.'
+                );
+            }
+
+            const data = buf.slice(offset, offset + size);
+
+            // 일반 파일만 처리
+            if (type === 0 || type === 48) {
+                files.set(name, data);
+            }
+
+            // 512 byte 단위 정렬
+            offset += Math.ceil(size / 512) * 512;
+        }
+
+        return files;
+    }
+
+    function bickleReplaceAssetUrls(value, assetMap) {
+        if (typeof value === 'string') {
+            // 이미 data URL이면 그대로
+            if (value.startsWith('data:')) {
+                return value;
+            }
+
+            /*
+             * 원래 엔트리 업로드 URL:
+             *
+             * https://playentry.org/uploads/aa/bb/image/xxx.png
+             *
+             * 또는
+             *
+             * /uploads/aa/bb/image/xxx.png
+             */
+
+            for (const [path, blobUrl] of assetMap.entries()) {
+                const normalizedPath = path.replace(/^temp\//, '');
+
+                if (
+                    value.endsWith('/uploads/' + normalizedPath) ||
+                    value === 'uploads/' + normalizedPath ||
+                    value === '/uploads/' + normalizedPath ||
+                    value.endsWith(normalizedPath)
+                ) {
+                    return blobUrl;
+                }
+            }
+
+            return value;
+        }
+
+        if (Array.isArray(value)) {
+            return value.map(item =>
+                bickleReplaceAssetUrls(item, assetMap)
+            );
+        }
+
+        if (value && typeof value === 'object') {
+            for (const key of Object.keys(value)) {
+                value[key] = bickleReplaceAssetUrls(
+                    value[key],
+                    assetMap
+                );
+            }
+        }
+
+        return value;
+    }
+
+    async function loadENT(file) {
+        const btn = document.getElementById('entLoadButton');
+
+        if (!file) {
+            return;
+        }
+
+        try {
+            btn.disabled = true;
+            btn.textContent = '⏳ 불러오는 중...';
+
+            if (!file.name.toLowerCase().endsWith('.ent')) {
+                throw new Error(
+                    '.ent 파일만 불러올 수 있습니다.'
+                );
+            }
+
+            /*
+             * 1. .ent 파일 읽기
+             */
+            const compressed = new Uint8Array(
+                await file.arrayBuffer()
+            );
+
+            /*
+             * 2. gzip 해제
+             */
+            if (typeof DecompressionStream === 'undefined') {
+                throw new Error(
+                    '이 브라우저는 gzip 압축 해제를 지원하지 않습니다.'
+                );
+            }
+
+            const decompressedStream =
+                new Blob([compressed])
+                    .stream()
+                    .pipeThrough(
+                        new DecompressionStream('gzip')
+                    );
+
+            const tarBuffer =
+                new Uint8Array(
+                    await new Response(
+                        decompressedStream
+                    ).arrayBuffer()
+                );
+
+            /*
+             * 3. TAR 해제
+             */
+            const files = bickleParseTar(tarBuffer);
+
+            /*
+             * 4. project.json 찾기
+             */
+            const projectFile =
+                files.get('temp/project.json') ||
+                files.get('project.json');
+
+            if (!projectFile) {
+                throw new Error(
+                    'temp/project.json을 찾을 수 없습니다.'
+                );
+            }
+
+            /*
+             * 5. JSON 파싱
+             */
+            const projectText =
+                new TextDecoder().decode(projectFile);
+
+            const project =
+                JSON.parse(projectText);
+
+            /*
+             * 6. 포함된 에셋들을 Blob URL로 생성
+             */
+            const assetMap = new Map();
+
+            for (const [path, data] of files.entries()) {
+                if (path === 'temp/project.json') {
+                    continue;
+                }
+
+                if (!path.startsWith('temp/')) {
+                    continue;
+                }
+
+                const assetPath =
+                    path.substring(5);
+
+                /*
+                 * 확장자에 따른 MIME 타입
+                 */
+                const ext =
+                    assetPath
+                        .split('.')
+                        .pop()
+                        ?.toLowerCase();
+
+                const mimeMap = {
+                    png: 'image/png',
+                    jpg: 'image/jpeg',
+                    jpeg: 'image/jpeg',
+                    gif: 'image/gif',
+                    webp: 'image/webp',
+                    svg: 'image/svg+xml',
+                    mp3: 'audio/mpeg',
+                    wav: 'audio/wav',
+                    ogg: 'audio/ogg',
+                    m4a: 'audio/mp4',
+                    mp4: 'video/mp4',
+                    webm: 'video/webm'
+                };
+
+                const mime =
+                    mimeMap[ext] ||
+                    'application/octet-stream';
+
+                const blob =
+                    new Blob([data], {
+                        type: mime
+                    });
+
+                const blobUrl =
+                    URL.createObjectURL(blob);
+
+                assetMap.set(
+                    assetPath,
+                    blobUrl
+                );
+            }
+
+            /*
+             * 7. 프로젝트 내부의
+             *    /uploads/... URL을 Blob URL로 교체
+             */
+            const projectForLoad =
+                bickleReplaceAssetUrls(
+                    project,
+                    assetMap
+                );
+
+            /*
+             * 8. EntryJS에 프로젝트 로드
+             */
+            if (
+                typeof Entry?.loadProject !== 'function'
+            ) {
+                throw new Error(
+                    'Entry.loadProject()를 찾을 수 없습니다.'
+                );
+            }
+            Entry.clearProject();
+Entry.loadProject(projectForLoad);
+
+/*
+ * EntryJS 프로젝트 로드 후 UI 강제 갱신
+ */
+setTimeout(() => {
+    try {
+        const workspace = Entry.getMainWS?.();
+
+        /*
+         * 현재 프로젝트의 오브젝트 목록을 다시 인식시키기 위해
+         * 변경 이벤트를 먼저 발생시킴
+         */
+        if (Entry.creationChangedEvent) {
+            try {
+                Entry.creationChangedEvent.notify();
+            } catch (e) {
+                console.warn(
+                    '[Bickle] creationChangedEvent 실패',
+                    e
+                );
+            }
+        }
+
+        /*
+         * Workspace 크기 갱신
+         */
+        if (workspace) {
+            try {
+                workspace.resize();
+            } catch (e) {
+                console.warn(
+                    '[Bickle] Workspace resize 실패',
+                    e
+                );
+            }
+        }
+
+        /*
+         * 화면 리사이즈 이벤트를 발생시켜
+         * EntryJS UI 컴포넌트들을 다시 그리게 함
+         */
+        try {
+            window.dispatchEvent(new Event('resize'));
+        } catch (e) {
+            console.warn(
+                '[Bickle] resize event 실패',
+                e
+            );
+        }
+
+        /*
+         * 한 번 더 다음 렌더링 프레임에서 갱신
+         */
+        requestAnimationFrame(() => {
+            try {
+                if (workspace) {
+                    workspace.resize();
+                }
+
+                if (Entry.creationChangedEvent) {
+                    Entry.creationChangedEvent.notify();
+                }
+
+                window.dispatchEvent(new Event('resize'));
+            } catch (e) {
+                console.warn(
+                    '[Bickle] 2차 UI 갱신 실패',
+                    e
+                );
+            }
+        });
+
+    } catch (e) {
+        console.warn(
+            '[Bickle] 프로젝트 UI 갱신 중 오류',
+            e
+        );
+    }
+}, 100);
+
+alert(
+    `작품을 불러왔습니다!\n\n${file.name}`
+);
+
+} catch (e) {
+    console.error(
+        '[Bickle ENT Load]',
+        e
+    );
+
+    alert(
+        '작품 불러오기에 실패했습니다.\n\n' +
+        e.message
+    );
+
+} finally {
+    btn.disabled = false;
+    btn.textContent = '📂 불러오기';
+
+    /*
+     * 같은 파일을 다시 선택할 수 있도록 초기화
+     */
+    const input =
+        document.getElementById(
+            'entFileInput'
+        );
+
+    if (input) {
+        input.value = '';
+    }
+}
+    }
+</script>
+<script>
+document.getElementById('entDownloadButton')?.addEventListener('click', downloadENT);
+</script>
+
+        <!-- main script -->
 <script>
     window.PUBLIC_PATH_FOR_ENTRYJS = 'lib/entry-js/dist/';
 
