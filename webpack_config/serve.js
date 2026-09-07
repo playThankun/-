@@ -24,7 +24,7 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             template,
-            title: 'Entry Example',
+            title: '작품 만들기',
             filename: path.resolve('dist', 'index.html'),
             inject: false,
             hash: true,
