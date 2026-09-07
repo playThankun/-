@@ -67,6 +67,24 @@ module.exports = {
                 },
                 syntax: { js: [], py: ['Entry.copy_to_clipboard(%1)'] },
             },
+get_from_clipboard: {
+    color: EntryStatic.colorSet.block.default.COMPUTER,
+    outerLine: EntryStatic.colorSet.block.darken.COMPUTER,
+    skeleton: 'basic_string_field',
+    template: '클립보드의 내용 가져오기(작동 안 됨)',
+    params: [],
+    def: {
+        params: [],
+        type: 'get_from_clipboard',
+    },
+    paramsKeyMap: {},
+    class: 'computer',
+    isNotFor: [],
+
+    func(sprite, script) {
+        return 'TEST';
+    },
+},
         };
     },
 };

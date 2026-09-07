@@ -296,7 +296,8 @@ EntryStatic.getAllBlocks = function () {
         {
             category: 'computer',
             blocks: [
-                'copy_to_clipboard'
+                'copy_to_clipboard',
+                'get_from_clipboard'
             ],
         },
         {

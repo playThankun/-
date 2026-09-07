@@ -16,19 +16,290 @@
     </head>
 
     <body>
-        <section style="height: 42px;">
-            <input type="file" id="litemodule" />
-            <input type="text" id="litemodulename" />
-            <button style="border: 1px solid black" onclick="handleUpdate()">
-                apply
-            </button>
-            <button style="border: 1px solid black" onclick="changeWorkspaceMode('block')">
-                Block Mode
-            </button>
-            <button style="border: 1px solid black" onclick="changeWorkspaceMode('python')">
-                Python Mode
-            </button>
-        </section>
+ <style>
+    /* 상단 앱 바 */
+    html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+    .entryjs-toolbar {
+        height: 58px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 18px;
+        box-sizing: border-box;
+
+        background: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            "Noto Sans KR",
+            sans-serif;
+
+        position: relative;
+        z-index: 1000;
+    }
+
+    /* 로고 */
+    .entryjs-brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-right: 10px;
+
+        font-size: 18px;
+        font-weight: 800;
+        color: #222;
+        white-space: nowrap;
+    }
+
+    .entryjs-brand-icon {
+        width: 32px;
+        height: 32px;
+
+        border-radius: 9px;
+
+        background: linear-gradient(135deg, #4f8cff, #6c5ce7);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: white;
+        font-size: 17px;
+        font-weight: 900;
+
+        box-shadow: 0 3px 8px rgba(79, 140, 255, 0.25);
+    }
+
+    /* 구분선 */
+    .toolbar-divider {
+        width: 1px;
+        height: 28px;
+        background: #e5e7eb;
+        margin: 0 4px;
+    }
+
+    /* 파일 영역 */
+    .toolbar-file {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .toolbar-file input[type="file"] {
+        display: none;
+    }
+
+    .file-button {
+        height: 36px;
+        padding: 0 13px;
+
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        border: 1px solid #dfe3e8;
+        border-radius: 9px;
+
+        background: #fff;
+        color: #333;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        cursor: pointer;
+        transition: 0.15s ease;
+    }
+
+    .file-button:hover {
+        background: #f7f8fa;
+        border-color: #cfd5dc;
+        transform: translateY(-1px);
+    }
+
+    /* 모듈 이름 */
+    .module-name {
+        width: 150px;
+        height: 36px;
+
+        box-sizing: border-box;
+
+        border: 1px solid #dfe3e8;
+        border-radius: 9px;
+
+        padding: 0 11px;
+
+        outline: none;
+
+        font-size: 13px;
+        color: #333;
+
+        transition: 0.15s ease;
+    }
+
+    .module-name::placeholder {
+        color: #a5abb3;
+    }
+
+    .module-name:focus {
+        border-color: #6c8cff;
+        box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.12);
+    }
+
+    /* 적용 버튼 */
+    .apply-button {
+        height: 36px;
+        padding: 0 15px;
+
+        border: 0;
+        border-radius: 9px;
+
+        background: #4f7cff;
+        color: white;
+
+        font-size: 13px;
+        font-weight: 700;
+
+        cursor: pointer;
+
+        box-shadow: 0 3px 8px rgba(79, 124, 255, 0.22);
+
+        transition: 0.15s ease;
+    }
+
+    .apply-button:hover {
+        background: #416fe9;
+        transform: translateY(-1px);
+    }
+
+    .apply-button:active {
+        transform: translateY(0);
+    }
+
+    /* 오른쪽 모드 버튼 */
+    .toolbar-spacer {
+        flex: 1;
+    }
+
+    .mode-buttons {
+        display: flex;
+        align-items: center;
+
+        padding: 3px;
+
+        background: #f1f3f6;
+        border-radius: 10px;
+    }
+
+    .mode-button {
+        height: 32px;
+        padding: 0 13px;
+
+        border: 0;
+        border-radius: 8px;
+
+        background: transparent;
+        color: #6b7280;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.15s ease;
+    }
+
+    .mode-button:hover {
+        color: #333;
+    }
+
+    .mode-button.active {
+        background: white;
+        color: #333;
+
+        box-shadow:
+            0 1px 3px rgba(0, 0, 0, 0.10);
+    }
+</style>
+
+<section class="entryjs-toolbar">
+
+    <!-- 로고 -->
+    <div class="entryjs-brand">
+        <span>  </span>
+        <span>Bickle</span>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <!--
+    <div class="toolbar-file">
+    <input
+        type="file"
+        id="litemodule"
+        accept=".js"
+        style="display: none;"
+    />
+
+    <button
+        type="button"
+        class="file-button"
+        onclick="document.getElementById('litemodule').click()"
+    >
+        <span id="moduleFileText">모듈 선택</span>
+    </button>
+
+    <input
+        type="text"
+        id="litemodulename"
+        class="module-name"
+        placeholder="모듈 이름"
+    />
+
+    <button
+        type="button"
+        class="apply-button"
+        onclick="handleUpdate()"
+    >
+        적용
+    </button>
+</div>
+
+
+    <div class="toolbar-spacer"></div>
+-->
+    <!-- 에디터 모드 -->
+    <div class="mode-buttons">
+
+        <button
+            id="blockModeButton"
+            class="mode-button active"
+            onclick="changeWorkspaceMode('block')"
+        >
+            블록
+        </button>
+
+        <button
+            id="pythonModeButton"
+            class="mode-button"
+            onclick="changeWorkspaceMode('python')"
+        >
+            &lt;/&gt; Python
+        </button>
+
+    </div>
+
+</section>
         <div id="entry-tool-container"></div>
 <div id="workspace"></div>
 
@@ -149,31 +420,49 @@
 
         <script>
             function handleUpdate() {
+                const moduleInput = document.getElementById('litemodule');
+const moduleFileText = document.getElementById('moduleFileText');
+
+moduleInput.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+        moduleFileText.textContent = this.files[0].name;
+    } else {
+        moduleFileText.textContent = '모듈 선택';
+    }
+});
                 const file = document.getElementById('litemodule').files[0];
                 const name = document.getElementById('litemodulename').value;
                 Entry.loadLiteTestModule(file, name);
             }
 
-            function changeWorkspaceMode(mode) {
-                const option = {};
+function changeWorkspaceMode(mode) {
+    const option = {};
 
-                if (mode === 'block') {
-                    option.boardType = Entry.Workspace.MODE_BOARD;
-                    option.textType = -1;
-                } else {
-                    option.boardType = Entry.Workspace.MODE_VIMBOARD;
-                    option.textType = Entry.Vim.TEXT_TYPE_PY;
-                    option.runType = Entry.Vim.WORKSPACE_MODE;
-                }
+    if (mode === 'block') {
+        option.boardType = Entry.Workspace.MODE_BOARD;
+        option.textType = -1;
+    } else if (mode === 'python') {
+        option.boardType = Entry.Workspace.MODE_VIMBOARD;
+        option.textType = Entry.Vim.TEXT_TYPE_PY;
+        option.runType = Entry.Vim.WORKSPACE_MODE;
+    }
 
-                const workspace = Entry.getMainWS();
+    const workspace = Entry.getMainWS();
 
-                if (workspace) {
-                    workspace.setMode(option);
-                } else {
-                    console.error('entry workspace not found!');
-                }
-            }
+    if (!workspace) {
+        console.error('entry workspace not found!');
+        return;
+    }
+
+    workspace.setMode(option);
+
+    // 버튼 상태 변경
+    const blockButton = document.getElementById('blockModeButton');
+    const pythonButton = document.getElementById('pythonModeButton');
+
+    blockButton.classList.toggle('active', mode === 'block');
+    pythonButton.classList.toggle('active', mode === 'python');
+}
         </script>
 <!-- main script -->
 <script>
@@ -272,7 +561,128 @@
         /*
          * 현재 열려 있는 매니저 종류
          */
+        const addEventListener = Entry.addEventListener.bind(Entry);
+        const removeAllEventListener = Entry.removeAllEventListener.bind(Entry);
+
         let currentType = null;
+
+        /*
+         * 테이블 / 확장 블록 / AI 블록 매니저
+         * entry-tool 문서의 page type 구현을 example.ejs에서도 사용할 수 있게 연결합니다.
+         */
+        const tableItemsFromWS = () => {
+            const dataTable = Entry.playground && Entry.playground.dataTable;
+            if (!dataTable) return [];
+
+            // entryjs 버전에 따라 sources의 노출 형태가 다를 수 있으므로 여러 형태를 지원
+            const sources = dataTable.sources ||
+                (typeof dataTable.getSources === 'function' ? dataTable.getSources() : []);
+            return Array.isArray(sources) ? sources : Object.values(sources || {});
+        };
+
+        const getExpansionBlocks = () => {
+            if (Array.isArray(popup.expansionBlocks)) return popup.expansionBlocks;
+            if (Entry.EXPANSION_BLOCK_LIST) return Object.values(Entry.EXPANSION_BLOCK_LIST);
+            if (Entry.EXPANSION_BLOCK) return Object.values(Entry.EXPANSION_BLOCK);
+            return [];
+        };
+
+        const getAIUtilizeBlocks = () => {
+            if (Array.isArray(popup.aiUtilizeBlocks)) return popup.aiUtilizeBlocks;
+            if (Entry.AI_UTILIZE_BLOCK_LIST) return Object.values(Entry.AI_UTILIZE_BLOCK_LIST);
+            if (Entry.AI_UTILIZE_BLOCK) return Object.values(Entry.AI_UTILIZE_BLOCK);
+            return [];
+        };
+
+        // 테이블 팝업에서 선택/생성된 테이블을 Workspace에 등록
+        popup.on('submit', (datas) => {
+            const selected = Array.isArray(datas)
+                ? datas
+                : (datas && Array.isArray(datas.selected) ? datas.selected : []);
+
+            if (!selected.length) return;
+
+            if (currentType === 'table') {
+                selected.forEach((tableItem) => {
+                    if (!tableItem || !Entry.playground?.dataTable) return;
+                    Entry.playground.dataTable.addSources(tableItem);
+                    Entry.creationChangedEvent.notify();
+                });
+                return;
+            }
+
+            if (currentType === 'expansion') {
+                // 엔트리 문서의 expansion 등록 방식
+                Entry.dispatchEvent('popupAddBlocks', {
+                    category: 'expansion',
+                    expansionItems: selected
+                });
+
+                const existing = Array.isArray(Entry.expansionBlocks)
+                    ? Entry.expansionBlocks
+                    : [];
+                const addBlocks = selected.filter(({ name }) => !existing.includes(name));
+
+                if (addBlocks.length && Entry.playground?.addExpansionBlocks) {
+                    Entry.playground.addExpansionBlocks(addBlocks, true, true);
+                }
+                return;
+            }
+
+            if (currentType === 'aiUtilize') {
+                // 엔트리 문서의 AI 블록 등록 방식
+                Entry.dispatchEvent('popupAddBlocks', {
+                    category: 'ai_utilize',
+                    aiUtilizeItems: selected
+                });
+
+                const existing = Array.isArray(Entry.aiUtilizeBlocks)
+                    ? Entry.aiUtilizeBlocks
+                    : [];
+                const addBlocks = selected.filter(({ name }) => !existing.includes(name));
+
+                if (addBlocks.length && Entry.playground?.addAIUtilizeBlocks) {
+                    Entry.playground.addAIUtilizeBlocks(addBlocks, true, true);
+                }
+            }
+        });
+
+        // 직접 버튼으로 여는 경우에도 Entry WS의 openManager 이벤트와 동일하게 동작
+        window.openEntryTableManager = function() {
+            currentType = 'table';
+            popup.show(
+                { type: 'table' },
+                { data: { data: tableItemsFromWS() } }
+            );
+        };
+
+        window.openExpansionBlockManager = function() {
+            currentType = 'expansion';
+            const blocks = getExpansionBlocks();
+            popup.show(
+                { type: 'expansion' },
+                { data: { data: blocks } }
+            );
+        };
+
+        window.openAIUtilizeBlockManager = function() {
+            currentType = 'aiUtilize';
+            const blocks = getAIUtilizeBlocks();
+            popup.show(
+                { type: 'aiUtilize' },
+                { data: { data: blocks } }
+            );
+        };
+
+        // 엔트리 WS 내부 버튼에서도 정상적으로 팝업이 열리도록 이벤트 연결
+        removeAllEventListener('openTableManager');
+        addEventListener('openTableManager', window.openEntryTableManager);
+
+        removeAllEventListener('openExpansionBlockManager');
+        addEventListener('openExpansionBlockManager', window.openExpansionBlockManager);
+
+        removeAllEventListener('openAIUtilizeBlockManager');
+        addEventListener('openAIUtilizeBlockManager', window.openAIUtilizeBlockManager);
 
         /*
          * currentType(sprite/picture/sound)에 맞게 items를 실제 WS에 반영하는 공통 처리
@@ -468,6 +878,79 @@
         popup.on('dummyUploads', async ({ formData, objectData }) => {
             console.log('dummyUploads', formData, objectData);
 
+            // table은 CSV 업로드를 통해 임시 데이터를 만들어야 합니다.
+            if (currentType === 'table') {
+                try {
+                    const files = formData
+                        ? Array.from(formData.values()).filter((v) => v instanceof File)
+                        : [];
+
+                    const uploads = await Promise.all(files.map(async (file) => {
+                        const text = await file.text();
+                        const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean);
+                        const rows = lines.map((line) => {
+                            // 일반적인 CSV용 최소 파서: 따옴표 안의 쉼표도 보존
+                            const result = [];
+                            let value = '';
+                            let quoted = false;
+                            for (let i = 0; i < line.length; i++) {
+                                const ch = line[i];
+                                if (ch === '"') {
+                                    if (quoted && line[i + 1] === '"') {
+                                        value += '"';
+                                        i++;
+                                    } else {
+                                        quoted = !quoted;
+                                    }
+                                } else if (ch === ',' && !quoted) {
+                                    result.push(value);
+                                    value = '';
+                                } else {
+                                    value += ch;
+                                }
+                            }
+                            result.push(value);
+                            return result;
+                        });
+
+                        const fields = rows[0] || [];
+                        const data = rows.slice(1);
+                        return {
+                            _id: Entry.generateHash(),
+                            name: file.name,
+                            lang: 'ko',
+                            url: '',
+                            rows: data.length,
+                            fields,
+                            fieldInfos: [],
+                            provider: 'user',
+                            summary: '',
+                            description: '',
+                            exampleurl: null,
+                            linkText: '',
+                            isOpen: true,
+                            projectTable: {
+                                _id: Entry.generateHash(),
+                                chart: [],
+                                fields,
+                                type: 'user',
+                                data,
+                                name: file.name
+                            },
+                            updated: new Date().toISOString(),
+                            hasOtherTypes: false,
+                            otherTypes: []
+                        };
+                    }));
+
+                    popup.setData({ data: { uploads, data: [] } });
+                } catch (err) {
+                    console.error('table CSV 처리 실패', err);
+                }
+                return;
+            }
+
+            // 기존 sprite/picture 업로드 처리
             try {
                 const files = formData
                     ? Array.from(formData.values()).filter((v) => v instanceof File)
@@ -528,6 +1011,26 @@
             }
         });
 
+        popup.on('uploads', (data) => {
+            if (currentType === 'table') {
+                const uploads = Array.isArray(data)
+                    ? data
+                    : (data && Array.isArray(data.uploads) ? data.uploads : []);
+
+                uploads.forEach((tableItem) => {
+                    if (!tableItem || !Entry.playground?.dataTable) return;
+                    Entry.playground.dataTable.addSources(tableItem);
+                    Entry.creationChangedEvent.notify();
+                });
+                return;
+            }
+
+            const uploads = Array.isArray(data)
+                ? data
+                : (data && Array.isArray(data.uploads) ? data.uploads : []);
+            if (uploads.length) applyItemsByType(uploads);
+        });
+
         popup.on('uploadFail', (data) => {
             console.error('upload fail', data);
             alert(`${data?.messageParent || ''}${data?.message || '업로드에 실패했습니다.'}`);
@@ -577,12 +1080,6 @@
         /*
          * Entry 매니저 이벤트
          */
-        const addEventListener =
-            Entry.addEventListener.bind(Entry);
-
-        const removeAllEventListener =
-            Entry.removeAllEventListener.bind(Entry);
-
         /*
          * 오브젝트 추가
          */
