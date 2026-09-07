@@ -26,7 +26,7 @@
         "serve:webgl": "cross-env NODE_ENV=serve webpack-dev-server --open  --hot --host 127.0.0.1 --webgl=true",
         "serve": "cross-env NODE_ENV=serve webpack-dev-server --open --hot --host 127.0.0.1",
         "serve:mini": "cross-env NODE_ENV=serve-mini webpack-dev-server --open --hot --host 127.0.0.1",
-        "prod": "npm install --legacy-peer-deps && npx cross-env NODE_ENV=production webpack && mkdir -p ../dist/editor && cp -r dist/* ../dist/editor/",
+        "prod": "npm install --legacy-peer-deps && npx cross-env NODE_ENV=production webpack && mkdir -p ../dist && mkdir -p ../dist/editor && cp -r dist/* ../dist/editor/",
         "test": "jest --colors",
         "clean": "rimraf ./dist",
         "dist": "webpack"
