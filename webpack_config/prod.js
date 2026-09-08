@@ -13,9 +13,10 @@ module.exports = {
     mode: 'production',
 
     output: {
-        chunkFilename: '[name].[contenthash].js',
-        filename: '[name].js',
-    },
+    chunkFilename: '[name].[contenthash].js',
+    filename: '[name].js',
+    publicPath: '/editor/',
+},
 
     module: {
         rules: [],
