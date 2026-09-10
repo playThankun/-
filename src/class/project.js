@@ -110,9 +110,9 @@ Entry.getStartProject = function (mediaFilePath) {
             {
                 id: '7y0y',
                 // 기본 오브젝트 이름을 땡쿤으로 교체
-                name: '증발한 오브젝트',
+                name: '땡쿤',
                 label: {
-                    ko: '증발한 오브젝트',
+                    ko: '땡쿤',
                     en: 'Evaporated Object',
                 },
                 script: [
@@ -124,7 +124,7 @@ Entry.getStartProject = function (mediaFilePath) {
                         },
                         {
                             type: 'repeat_basic',
-                            statements: [[{ type: 'stop_run' }]],
+                            statements: [[{ type: '' }]],
                         },
                     ],
                 ],
@@ -140,13 +140,13 @@ Entry.getStartProject = function (mediaFilePath) {
                         {
                             id: 'vx80',
 
-                            fileurl: `${mediaFilePath}images/thankun.svg`,
-                            thumbUrl: `${mediaFilePath}images/thankun.svg`,
+                            fileurl: `images/프사.svg`,
+                            thumbUrl: `images/프사.svg`,
                             name: '땡쿤_1',
                             imageType: 'svg',
                             dimension: {
-                                width: 1,
-                                height: 1,
+                                width: 289,
+                                height: 302,
                             },
                         },
                     ],
@@ -156,12 +156,12 @@ Entry.getStartProject = function (mediaFilePath) {
                     y: 0,
                     regX: 144.5,
                     regY: 151,
-                    scaleX: 1,
-                    scaleY: 1,
+                    scaleX: 0.35,
+                    scaleY: 0.35,
                     rotation: 0,
                     direction: 90,
-                    width: 1,
-                    height: 1,
+                    width: 289,
+                    height: 302,
                     visible: true,
                 },
                 lock: false,

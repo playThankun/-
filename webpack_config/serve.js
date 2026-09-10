@@ -8,7 +8,7 @@ const isWebGLEnabled = process.argv.some(
 );
 const templateName = (() => {
     if (process.env.NODE_ENV === 'serve') {
-        return isWebGLEnabled ? 'example_webgl.ejs' : 'example.ejs';
+        return isWebGLEnabled ? 'example_webgl.ejs' : 'example_forserve.ejs';
     } else {
         return 'example_mini.ejs';
     }
