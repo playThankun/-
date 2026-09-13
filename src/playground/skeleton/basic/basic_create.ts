@@ -1,50 +1,53 @@
 Entry.skeleton.basic_create = {
     executable: true,
-    path(blockView) {
-        let width = blockView.contentWidth;
-        let height = blockView.contentHeight;
-        height = Math.max(28, height);
-        width = Math.max(0, width + 4);
-        let statementHeight = blockView._statements[0] ? blockView._statements[0].height : 20;
-        statementHeight = Math.max(statementHeight, 20);
-        const bw = width - 20;
+    path(blockView: any) {
+        let width = Math.max(0, blockView.contentWidth - 10);
+        let height = Math.max(28, blockView.contentHeight);
         const halfHeight = height / 2;
 
-        return `m 0 0
-        V 1
+        return `m 4 0
         h ${width}
         a ${halfHeight} ${halfHeight} 0 0 1 0 ${height}
-        H 26
-        l -6 6
-        l -6 -6
-        v ${statementHeight}
-        l 6 6
-        l 6 -6
-        h ${bw}
-        a 7.5 7.5 0 0 1 0 15
-        H 0
+        H 4
+        a ${halfHeight} ${halfHeight} 0 0 1 0 -${height}
         z`;
     },
-    magnets(blockView) {
-        return {};
+    magnets(blockView: any) {
+        return {
+            // ★ next까지 삭제하여 블록 아래(외부)에 다른 블록이 꽂히는 것 방지
+        };
     },
-    box(blockView) {
+    box(blockView: any) {
         const width = blockView ? blockView.contentWidth : 150;
         const height = blockView ? blockView.contentHeight : 28;
         return {
-            offsetX: -8,
+            offsetX: 0,
             offsetY: 0,
-            width: width + 30,
-            height: Math.max(30, height + 2),
+            width: width + 4,
+            height: Math.max(28, height),
             marginBottom: 0,
         };
     },
-    statementPos(blockView) {
-        const height1 = Math.max(30, (blockView.contentHeight % 1000000) + 2) + 1;
-        return [{ x: 14, y: height1 - 3 }];
+    
+    statementPos(blockView: any) {
+        const height = Math.max(
+            (blockView.contentHeight % 1000000) + 2,
+            36
+        );
+
+        return [
+            {
+                x: 10,
+                y: height,
+            },
+        ];
     },
-    contentPos(blockView) {
+
+    contentPos(blockView: any) {
         const height = Math.max(blockView.contentHeight % 1000000, 28);
-        return { x: 14, y: height / 2 + 1 };
+        return { 
+            x: 2, 
+            y: height / 2 
+        };
     },
 };

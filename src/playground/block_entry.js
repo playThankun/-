@@ -1617,26 +1617,6 @@ function getBlocks() {
             },
             syntax: { js: [], py: [''] },
         },
-        stop_run: {
-            color: EntryStatic.colorSet.block.default.FLOW,
-            skeleton: 'basic',
-            statements: [],
-            params: [
-                {
-                    type: 'Indicator',
-                    img: 'block_icon/flow_03.png',
-                    size: 12,
-                },
-            ],
-            events: {},
-            def: {
-                params: [null],
-            },
-            func(sprite, script) {
-                return Entry.engine.toggleStop();
-            },
-            syntax: { js: [], py: [''] },
-        },
         //endregion basic 기본블록
         //region basic 기본
         change_to_nth_shape: {

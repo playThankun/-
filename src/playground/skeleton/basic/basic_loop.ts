@@ -1,63 +1,127 @@
 Entry.skeleton.basic_loop = {
     executable: true,
-    path(blockView) {
-        let width = blockView.contentWidth;
-        let height = blockView.contentHeight;
-        height = Math.max(28, height);
-        width = Math.max(0, width + 6 - height / 2);
-        let statementHeight = blockView._statements[0] ? blockView._statements[0].height : 20;
-        statementHeight = Math.max(statementHeight, 20);
-        const bw = width - 8;
-        const halfHeight = height / 2;
+    path(blockView: any) {
+        const width = Math.max(
+            blockView.contentWidth + 18,
+            30
+        );
 
-        return `m 0 0
-        l 6 6
-        l 6 -6
-        h ${width}
-        a ${halfHeight} ${halfHeight} 0 0 1 0 ${height}
-        H 26
-        l -6 6
-        l -6 -6
-        v ${statementHeight}
-        l 6 6
-        l 6 -6
-        h ${bw}
-        a 7.5 7.5 0 0 1 0 15
-        H 12
-        l -6 6
-        l -6 -6
-        z`;
-    },
-    magnets(blockView) {
-        const contentHeight = Math.max(blockView.contentHeight + 2, 28);
-        let statementHeight = blockView._statements[0] ? blockView._statements[0].height : 20;
+        const contentHeight = Math.max(
+            blockView.contentHeight + 2,
+            36
+        );
+
+        let statementHeight = blockView._statements[0]
+            ? blockView._statements[0].height
+            : 20;
+
+        const isAttached = statementHeight > 20;
         statementHeight = Math.max(statementHeight, 20);
+
+        const radius = 9;
+        const statementRadius = 8;
+        const indentX = isAttached ? 18 : 16;
+
+        const totalHeight = contentHeight + statementHeight + 16;
+        const statementTop = contentHeight;
+        const statementBottom = statementTop + statementHeight;
+
+        return `
+            M ${radius} 0
+            H ${width - radius}
+            Q ${width} 0 ${width} ${radius}
+            V ${contentHeight - radius}
+            Q ${width} ${contentHeight} ${width - radius} ${contentHeight}
+            H ${indentX + statementRadius}
+            Q ${indentX} ${contentHeight} ${indentX} ${contentHeight + statementRadius}
+            V ${statementBottom - statementRadius}
+            Q ${indentX} ${statementBottom} ${indentX + statementRadius} ${statementBottom}
+            H ${width - radius}
+            Q ${width} ${statementBottom} ${width} ${statementBottom + radius}
+            V ${totalHeight - radius}
+            Q ${width} ${totalHeight} ${width - radius} ${totalHeight}
+            H ${radius}
+            Q 0 ${totalHeight} 0 ${totalHeight - radius}
+            V ${radius}
+            Q 0 0 ${radius} 0
+            Z
+        `;
+    },
+
+    magnets(blockView: any) {
+        const contentHeight = Math.max(
+            blockView.contentHeight + 2,
+            36
+        );
+
+        let statementHeight = blockView._statements[0]
+            ? blockView._statements[0].height
+            : 20;
+
+        statementHeight = Math.max(statementHeight, 20);
+
         return {
             previous: { x: 0, y: 0 },
-            next: { x: 0, y: statementHeight + contentHeight + 15 + blockView.offsetY },
+            next: {
+                x: 0,
+                y: contentHeight + statementHeight + 16,
+            },
         };
     },
-    box(blockView) {
+
+    box(blockView: any) {
         const contentWidth = blockView.contentWidth;
-        const contentHeight = Math.max(blockView.contentHeight + 2, 28);
-        let statementHeight = blockView._statements[0] ? blockView._statements[0].height : 20;
+
+        const contentHeight = Math.max(
+            blockView.contentHeight + 2,
+            36
+        );
+
+        let statementHeight = blockView._statements[0]
+            ? blockView._statements[0].height
+            : 20;
+
         statementHeight = Math.max(statementHeight, 20);
+
         return {
             topFieldHeight: contentHeight,
-            offsetX: -8,
+            offsetX: -7,
             offsetY: 0,
-            width: contentWidth + 30,
-            height: contentHeight + statementHeight + 17,
+            width: contentWidth + 19,
+            height: contentHeight + statementHeight + 16,
             marginBottom: 0,
         };
     },
-    statementPos(blockView) {
-        const height = Math.max(30, blockView.contentHeight + 2);
-        return [{ x: 14, y: height - 2 }];
+
+    statementPos(blockView: any) {
+        const height = Math.max(
+            blockView.contentHeight + 2,
+            36
+        );
+
+        let statementHeight = blockView._statements[0]
+            ? blockView._statements[0].height
+            : 20;
+
+        const isAttached = statementHeight > 20;
+
+        return [
+            {
+                x: isAttached ? 14 : 18,
+                y: height,
+            },
+        ];
     },
-    contentPos(blockView) {
-        // apply scale required.
-        const height = Math.max(blockView.contentHeight, 28);
-        return { x: 14, y: height / 2 };
+
+    contentPos(blockView: any) {
+        const height = Math.max(
+            blockView.contentHeight + 2,
+            36
+        );
+
+        return {
+            x: 12,
+            y: height / 2,
+        };
     },
 };

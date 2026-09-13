@@ -676,7 +676,7 @@ module.exports = {
             stop_run: {
                 color: EntryStatic.colorSet.block.default.FLOW,
                 outerLine: EntryStatic.colorSet.block.darken.FLOW,
-                skeleton: 'basic',
+                skeleton: 'basic_without_next',
                 statements: [],
                 params: [
                     {
