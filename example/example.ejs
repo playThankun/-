@@ -288,13 +288,13 @@ body {
 
     <div class="toolbar-divider"></div>
 
-    <button
+<button
     type="button"
     class="file-button ent-save-button"
     id="entDownloadButton"
     onclick="downloadENT()"
 >
-    저장
+    💾 저장
 </button>
 
 <button
@@ -303,7 +303,16 @@ body {
     id="entLoadButton"
     onclick="document.getElementById('entFileInput').click()"
 >
-    불러오기
+    📂 불러오기
+</button>
+
+<button
+    type="button"
+    class="file-button ent-save-button bickle-save-button"
+    id="bickleSaveButton"
+    onclick="saveToBickle()"
+>
+    ☁ Bickle에 저장
 </button>
 
 <input
