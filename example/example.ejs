@@ -279,6 +279,40 @@ body {
     cursor: wait;
 }
 
+/*
+ * ========================================
+ * Bickle Play Mode
+ * ========================================
+ */
+
+body.bickle-play-mode {
+    overflow: hidden;
+}
+
+/*
+ * Play Mode에서는 편집기 상단 툴바 숨김
+ */
+body.bickle-play-mode .entryjs-toolbar {
+    display: none;
+}
+
+/*
+ * Entry Tool 숨김
+ */
+body.bickle-play-mode #entry-tool-container {
+    display: none;
+}
+
+/*
+ * Workspace를 화면 전체로
+ */
+body.bickle-play-mode #workspace {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
 </style>
 
 <section class="entryjs-toolbar">
@@ -1274,808 +1308,2559 @@ alert(
     }
 </script>
 
-        <!-- main script -->
+ <!-- main script -->
 <script>
     window.PUBLIC_PATH_FOR_ENTRYJS = 'lib/entry-js/dist/';
 
     $(document).ready(function() {
-var initOption = {
-    libDir: '/editor',
-    entryDir: '',
-    type: 'workspace',
-    textCodingEnable: true,
-};
 
-        Entry.defaultPath = 'https://playentry.org';
+        /*
+         * ========================================
+         * Bickle Play Mode
+         * ========================================
+         *
+         * /editor/?id=작품ID&mode=play
+         *
+         * 로 들어오면 편집기 대신
+         * 작품 실행 화면으로 사용합니다.
+         */
 
-        Entry.creationChangedEvent = new Entry.Event(window);
-Entry.init(document.getElementById('workspace'), initOption);
+        const bickleParams =
+            new URLSearchParams(
+                window.location.search
+            );
 
-async function loadBickleProject() {
-    const params = new URLSearchParams(window.location.search);
-    const projectId = params.get('id');
+        const bicklePlayMode =
+            bickleParams.get('mode') === 'play';
 
-    // /editor/ 로 들어온 경우
-    if (!projectId) {
-        Entry.loadProject();
-        return;
-    }
-
-    try {
-        console.log('[Bickle] 작품 불러오는 중:', projectId);
-
-        const response = await fetch(
-            `${BICKLE_API_BASE}/api/projects/${encodeURIComponent(projectId)}`,
-            {
-                method: 'GET',
-                credentials: 'include'
-            }
-        );
-
-        let data = {};
-
-        try {
-            data = await response.json();
-        } catch {
-            data = {};
-        }
-
-        if (!response.ok || !data?.ok || !data?.project) {
-            throw new Error(
-                data?.message ||
-                data?.error ||
-                `HTTP ${response.status}`
+        if (bicklePlayMode) {
+            document.body.classList.add(
+                'bickle-play-mode'
             );
         }
 
-        bickleProjectId = projectId;
 
-        let projectData = data.project.project_data;
+        /*
+         * ========================================
+         * EntryJS 초기화
+         * ========================================
+         */
 
-        if (typeof projectData === 'string') {
-            projectData = JSON.parse(projectData);
-        }
+        const initOption = {
+            libDir: '/editor',
+            entryDir: '',
+            type: 'workspace',
+            textCodingEnable: true,
+        };
 
-        if (!projectData) {
-            throw new Error('프로젝트 데이터가 없습니다.');
-        }
+        Entry.defaultPath =
+            'https://playentry.org';
 
-        Entry.clearProject();
-        Entry.loadProject(projectData);
+        Entry.creationChangedEvent =
+            new Entry.Event(window);
 
-        console.log('[Bickle] 작품 불러오기 완료:', projectId);
+        Entry.init(
+            document.getElementById('workspace'),
+            initOption
+        );
 
-        setTimeout(() => {
-            try {
-                const workspace = Entry.getMainWS?.();
 
-                if (workspace) {
-                    workspace.resize();
-                }
+        /*
+         * ========================================
+         * Bickle 프로젝트 불러오기
+         * ========================================
+         *
+         * /editor/
+         *      → 새 프로젝트
+         *
+         * /editor/?id=abc
+         *      → Bickle 서버 프로젝트
+         *
+         * /editor/?id=abc&mode=play
+         *      → Bickle 서버 프로젝트를 불러온 뒤 실행
+         */
 
-                if (Entry.creationChangedEvent) {
-                    try {
-                        Entry.creationChangedEvent.notify();
-                    } catch {}
-                }
+        async function loadBickleProject() {
 
-                window.dispatchEvent(
-                    new Event('resize')
+            const params =
+                new URLSearchParams(
+                    window.location.search
                 );
+
+            const projectId =
+                params.get('id');
+
+
+            /*
+             * ID가 없으면 일반 EntryJS 프로젝트
+             */
+            if (!projectId) {
+
+                Entry.loadProject();
+
+                return;
+            }
+
+
+            try {
+
+                console.log(
+                    '[Bickle] 작품 불러오는 중:',
+                    projectId
+                );
+
+
+                /*
+                 * 서버에서 프로젝트 가져오기
+                 */
+                const response =
+                    await fetch(
+                        `${BICKLE_API_BASE}/api/projects/${encodeURIComponent(projectId)}`,
+                        {
+                            method: 'GET',
+                            credentials: 'include'
+                        }
+                    );
+
+
+                let data = {};
+
+                try {
+
+                    data =
+                        await response.json();
+
+                } catch {
+
+                    data = {};
+
+                }
+
+
+                /*
+                 * 서버 응답 확인
+                 */
+                if (
+                    !response.ok ||
+                    !data?.ok ||
+                    !data?.project
+                ) {
+
+                    throw new Error(
+                        data?.message ||
+                        data?.error ||
+                        `HTTP ${response.status}`
+                    );
+
+                }
+
+
+                /*
+                 * 현재 Bickle 프로젝트 ID 기억
+                 *
+                 * 이후 저장할 때 POST가 아니라
+                 * PUT /api/projects/:id 사용
+                 */
+                bickleProjectId =
+                    projectId;
+
+
+                /*
+                 * project_data 가져오기
+                 */
+                let projectData =
+                    data.project.project_data;
+
+
+                /*
+                 * Worker에서 문자열로 내려오므로
+                 * 필요한 경우 JSON 파싱
+                 */
+                if (
+                    typeof projectData ===
+                    'string'
+                ) {
+
+                    projectData =
+                        JSON.parse(projectData);
+
+                }
+
+
+                if (!projectData) {
+
+                    throw new Error(
+                        '프로젝트 데이터가 없습니다.'
+                    );
+
+                }
+
+
+                /*
+                 * ========================================
+                 * 엔진 실행 중인지 확인
+                 * ========================================
+                 *
+                 * 네 Entry.Engine의
+                 *
+                 * isState('run')
+                 *
+                 * 를 사용합니다.
+                 *
+                 * 프로젝트를 갈아끼우기 전에
+                 * 기존 실행을 정지시킵니다.
+                 */
+
+                if (
+                    Entry.engine &&
+                    typeof Entry.engine.isState ===
+                        'function' &&
+                    Entry.engine.isState('run')
+                ) {
+
+                    console.log(
+                        '[Bickle] 실행 중인 프로젝트 정지'
+                    );
+
+                    if (
+                        typeof Entry.engine.toggleStop ===
+                            'function'
+                    ) {
+
+                        await Entry.engine.toggleStop();
+
+                    }
+
+                }
+
+
+                /*
+                 * ========================================
+                 * 기존 EntryJS 프로젝트 제거
+                 * ========================================
+                 *
+                 * 이것은 서버의 프로젝트를 삭제하는 것이
+                 * 아닙니다.
+                 *
+                 * 현재 브라우저에 올라와 있는
+                 * EntryJS 프로젝트 상태만 제거합니다.
+                 */
+
+                if (
+                    typeof Entry.clearProject ===
+                    'function'
+                ) {
+
+                    Entry.clearProject();
+
+                }
+
+
+                /*
+                 * ========================================
+                 * Bickle 프로젝트 로드
+                 * ========================================
+                 */
+
+                Entry.loadProject(
+                    projectData
+                );
+
+
+                console.log(
+                    '[Bickle] 작품 불러오기 완료:',
+                    projectId
+                );
+
+
+                /*
+                 * ========================================
+                 * UI 갱신
+                 * ========================================
+                 */
+
+                setTimeout(() => {
+
+                    try {
+
+                        const workspace =
+                            Entry.getMainWS?.();
+
+
+                        /*
+                         * 프로젝트 변경 알림
+                         */
+                        if (
+                            Entry.creationChangedEvent
+                        ) {
+
+                            try {
+
+                                Entry.creationChangedEvent.notify();
+
+                            } catch (error) {
+
+                                console.warn(
+                                    '[Bickle] creationChangedEvent 실패',
+                                    error
+                                );
+
+                            }
+
+                        }
+
+
+                        /*
+                         * Workspace 크기 갱신
+                         */
+                        if (workspace) {
+
+                            try {
+
+                                workspace.resize();
+
+                            } catch (error) {
+
+                                console.warn(
+                                    '[Bickle] Workspace resize 실패',
+                                    error
+                                );
+
+                            }
+
+                        }
+
+
+                        /*
+                         * 브라우저 resize 이벤트
+                         */
+                        try {
+
+                            window.dispatchEvent(
+                                new Event('resize')
+                            );
+
+                        } catch (error) {
+
+                            console.warn(
+                                '[Bickle] resize event 실패',
+                                error
+                            );
+
+                        }
+
+
+                        /*
+                         * 한 번 더 다음 프레임에서 갱신
+                         */
+                        requestAnimationFrame(() => {
+
+                            try {
+
+                                if (workspace) {
+
+                                    workspace.resize();
+
+                                }
+
+
+                                if (
+                                    Entry.creationChangedEvent
+                                ) {
+
+                                    try {
+
+                                        Entry.creationChangedEvent.notify();
+
+                                    } catch {}
+
+                                }
+
+
+                                window.dispatchEvent(
+                                    new Event('resize')
+                                );
+
+                            } catch (error) {
+
+                                console.warn(
+                                    '[Bickle] 2차 UI 갱신 실패',
+                                    error
+                                );
+
+                            }
+
+                        });
+
+                    } catch (error) {
+
+                        console.warn(
+                            '[Bickle] 프로젝트 UI 갱신 중 오류',
+                            error
+                        );
+
+                    }
+
+                }, 100);
+
+
+                /*
+                 * ========================================
+                 * Play Mode
+                 * ========================================
+                 *
+                 * 프로젝트 로드가 끝난 뒤 실행
+                 */
+
+                if (bicklePlayMode) {
+
+                    setTimeout(() => {
+
+                        try {
+
+                            const workspace =
+                                Entry.getMainWS?.();
+
+
+                            if (workspace) {
+
+                                workspace.resize();
+
+                            }
+
+
+                            if (
+                                Entry.creationChangedEvent
+                            ) {
+
+                                try {
+
+                                    Entry.creationChangedEvent.notify();
+
+                                } catch {}
+
+                            }
+
+
+                            window.dispatchEvent(
+                                new Event('resize')
+                            );
+
+
+                            /*
+                             * EntryJS 프로젝트 실행
+                             */
+
+                            if (
+                                typeof Entry.runProject ===
+                                'function'
+                            ) {
+
+                                console.log(
+                                    '[Bickle Play Mode] Entry.runProject()'
+                                );
+
+                                Entry.runProject();
+
+                            } else if (
+                                typeof Entry.playProject ===
+                                'function'
+                            ) {
+
+                                console.log(
+                                    '[Bickle Play Mode] Entry.playProject()'
+                                );
+
+                                Entry.playProject();
+
+                            } else if (
+                                Entry.engine &&
+                                typeof Entry.engine.run ===
+                                'function'
+                            ) {
+
+                                console.log(
+                                    '[Bickle Play Mode] Entry.engine.run()'
+                                );
+
+                                Entry.engine.run();
+
+                            } else {
+
+                                console.warn(
+                                    '[Bickle Play Mode] 프로젝트 실행 함수를 찾지 못했습니다.'
+                                );
+
+                            }
+
+                        } catch (error) {
+
+                            console.error(
+                                '[Bickle Play Mode]',
+                                error
+                            );
+
+                        }
+
+                    }, 300);
+
+                }
+
 
             } catch (error) {
-                console.warn(
-                    '[Bickle] UI 갱신 실패',
+
+                console.error(
+                    '[Bickle Project Load]',
                     error
                 );
+
+
+                alert(
+                    'Bickle 작품을 불러오지 못했습니다.\n\n' +
+                    error.message
+                );
+
+
+                /*
+                 * 서버 프로젝트 로드 실패 시
+                 * 새 EntryJS 프로젝트로 복구
+                 */
+                try {
+
+                    if (
+                        Entry.engine &&
+                        typeof Entry.engine.isState ===
+                            'function' &&
+                        Entry.engine.isState('run') &&
+                        typeof Entry.engine.toggleStop ===
+                            'function'
+                    ) {
+
+                        await Entry.engine.toggleStop();
+
+                    }
+
+                } catch (stopError) {
+
+                    console.warn(
+                        '[Bickle] 엔진 정지 실패',
+                        stopError
+                    );
+
+                }
+
+
+                try {
+
+                    if (
+                        typeof Entry.clearProject ===
+                        'function'
+                    ) {
+
+                        Entry.clearProject();
+
+                    }
+
+                    Entry.loadProject();
+
+                } catch (fallbackError) {
+
+                    console.error(
+                        '[Bickle] 기본 프로젝트 복구 실패',
+                        fallbackError
+                    );
+
+                }
+
             }
-        }, 100);
 
-    } catch (error) {
+        }
 
-        console.error(
-            '[Bickle Project Load]',
-            error
-        );
 
-        alert(
-            'Bickle 작품을 불러오지 못했습니다.\n\n' +
-            error.message
-        );
-        Entry.clearProject();
-        Entry.loadProject();
-    }
-}
+        /*
+         * ========================================
+         * 프로젝트 로드 시작
+         * ========================================
+         */
 
-loadBickleProject();
+        loadBickleProject();
 
-        const PopupClass = window.EntryTool
-            ? window.EntryTool.Popup
-            : (typeof Popup !== 'undefined' ? Popup : null);
+
+        /*
+         * ========================================
+         * Entry Tool Popup
+         * ========================================
+         */
+
+        const PopupClass =
+            window.EntryTool
+                ? window.EntryTool.Popup
+                : (
+                    typeof Popup !== 'undefined'
+                        ? Popup
+                        : null
+                );
+
 
         if (!PopupClass) {
-            console.error('EntryTool Popup을 찾을 수 없습니다.');
+
+            console.error(
+                'EntryTool Popup을 찾을 수 없습니다.'
+            );
+
             return;
         }
 
+
         /*
-         * sidebar/data 선언
+         * ========================================
+         * Sidebar / Sprite 데이터
+         * ========================================
          */
+
         const spriteSidebarData = {
+
             thankun: {
+
                 id: 'thankun',
+
                 name: '땡쿤',
+
                 value: 'thankun',
+
                 sub: {
+
                     all: {
+
                         id: '',
+
                         name: '전체',
+
                         value: 'all'
+
                     }
+
                 }
+
             }
+
         };
+
 
         const officialSpriteData = [
+
             {
-                id: Entry.generateHash(),
-                name: '땡쿤',
+
+                id:
+                    Entry.generateHash(),
+
+                name:
+                    '땡쿤',
+
                 label: {
-                    ko: '땡쿤',
-                    en: 'Thankun'
+
+                    ko:
+                        '땡쿤',
+
+                    en:
+                        'Thankun'
+
                 },
+
                 category: {
-                    main: 'thankun',
-                    sub: 'all'
+
+                    main:
+                        'thankun',
+
+                    sub:
+                        'all'
+
                 },
+
                 pictures: [
+
                     {
-                        id: Entry.generateHash(),
-                        name: '땡쿤',
+
+                        id:
+                            Entry.generateHash(),
+
+                        name:
+                            '땡쿤',
+
                         label: {
-                            ko: '와샌즈아시는땡쿤!'
+
+                            ko:
+                                '와샌즈아시는땡쿤!'
+
                         },
-                        filename: '83862329mtmwr2pn000668e1e3bzi18y',
+
+                        filename:
+                            '83862329mtmwr2pn000668e1e3bzi18y',
+
                         fileurl:
                             'images/프사.svg',
-                        imageType: 'svg',
+
+                        imageType:
+                            'svg',
+
                         dimension: {
-                            width: 289,
-                            height: 302
+
+                            width:
+                                289,
+
+                            height:
+                                302
+
                         }
+
                     }
+
                 ],
+
                 sounds: []
+
             },
 
+
             {
-                id: Entry.generateHash(),
-                name: '숭이숭',
+
+                id:
+                    Entry.generateHash(),
+
+                name:
+                    '숭이숭',
+
                 label: {
-                    ko: '숭이숭',
-                    en: 'Sung-i-Sung'
+
+                    ko:
+                        '숭이숭',
+
+                    en:
+                        'Sung-i-Sung'
+
                 },
+
                 category: {
-                    main: 'thankun',
-                    sub: 'all'
+
+                    main:
+                        'thankun',
+
+                    sub:
+                        'all'
+
                 },
+
                 pictures: [
+
                     {
-                        id: Entry.generateHash(),
-                        name: '숭이숭',
+
+                        id:
+                            Entry.generateHash(),
+
+                        name:
+                            '숭이숭',
+
                         label: {
-                            ko: '와샌즈아시는숭이숭!'
+
+                            ko:
+                                '와샌즈아시는숭이숭!'
+
                         },
-                        filename: '83862329mtmwr2pn430',
+
+                        filename:
+                            '83862329mtmwr2pn430',
+
                         fileurl:
                             'images/숭이숭.svg',
-                        imageType: 'svg',
+
+                        imageType:
+                            'svg',
+
                         dimension: {
-                            width: 293,
-                            height: 150
+
+                            width:
+                                293,
+
+                            height:
+                                150
+
                         }
+
                     }
+
                 ],
+
                 sounds: []
+
             }
+
         ];
 
-        /*
-         * 팝업 생성
-         */
-        const popup = new PopupClass({
-            container: document.getElementById('entry-tool-container'),
-            isShow: false,
-            theme: 'entry',
 
-            data: {
+        /*
+         * ========================================
+         * Entry Tool Popup 생성
+         * ========================================
+         */
+
+        const popup =
+            new PopupClass({
+
+                container:
+                    document.getElementById(
+                        'entry-tool-container'
+                    ),
+
+                isShow:
+                    false,
+
+                theme:
+                    'entry',
+
                 data: {
-                    imageBaseUrl: 'https://playentry.org/uploads/',
-                    data: officialSpriteData
+
+                    data: {
+
+                        imageBaseUrl:
+                            'https://playentry.org/uploads/',
+
+                        data:
+                            officialSpriteData
+
+                    }
+
                 }
-            }
-        });
+
+            });
+
 
         /*
-         * 현재 열려 있는 매니저 종류
+         * 현재 매니저 종류
          */
-        const addEventListener = Entry.addEventListener.bind(Entry);
-        const removeAllEventListener = Entry.removeAllEventListener.bind(Entry);
 
-        let currentType = null;
+        const addEventListener =
+            Entry.addEventListener.bind(Entry);
+
+        const removeAllEventListener =
+            Entry.removeAllEventListener.bind(Entry);
+
+        let currentType =
+            null;
+
 
         /*
-         * 테이블 / 확장 블록 / AI 블록 매니저
-         * entry-tool 문서의 page type 구현을 example.ejs에서도 사용할 수 있게 연결합니다.
+         * ========================================
+         * 테이블 / 확장 / AI
+         * ========================================
          */
+
         const tableItemsFromWS = () => {
-            const dataTable = Entry.playground && Entry.playground.dataTable;
-            if (!dataTable) return [];
 
-            // entryjs 버전에 따라 sources의 노출 형태가 다를 수 있으므로 여러 형태를 지원
-            const sources = dataTable.sources ||
-                (typeof dataTable.getSources === 'function' ? dataTable.getSources() : []);
-            return Array.isArray(sources) ? sources : Object.values(sources || {});
-        };
+            const dataTable =
+                Entry.playground &&
+                Entry.playground.dataTable;
 
-        const getExpansionBlocks = () => {
-            if (Array.isArray(popup.expansionBlocks)) return popup.expansionBlocks;
-            if (Entry.EXPANSION_BLOCK_LIST) return Object.values(Entry.EXPANSION_BLOCK_LIST);
-            if (Entry.EXPANSION_BLOCK) return Object.values(Entry.EXPANSION_BLOCK);
-            return [];
-        };
+            if (!dataTable) {
 
-        const getAIUtilizeBlocks = () => {
-            if (Array.isArray(popup.aiUtilizeBlocks)) return popup.aiUtilizeBlocks;
-            if (Entry.AI_UTILIZE_BLOCK_LIST) return Object.values(Entry.AI_UTILIZE_BLOCK_LIST);
-            if (Entry.AI_UTILIZE_BLOCK) return Object.values(Entry.AI_UTILIZE_BLOCK);
-            return [];
-        };
+                return [];
 
-        // 테이블 팝업에서 선택/생성된 테이블을 Workspace에 등록
-        popup.on('submit', (datas) => {
-            const selected = Array.isArray(datas)
-                ? datas
-                : (datas && Array.isArray(datas.selected) ? datas.selected : []);
-
-            if (!selected.length) return;
-
-            if (currentType === 'table') {
-                selected.forEach((tableItem) => {
-                    if (!tableItem || !Entry.playground?.dataTable) return;
-                    Entry.playground.dataTable.addSources(tableItem);
-                    Entry.creationChangedEvent.notify();
-                });
-                return;
             }
 
-            if (currentType === 'expansion') {
-                // 엔트리 문서의 expansion 등록 방식
-                Entry.dispatchEvent('popupAddBlocks', {
-                    category: 'expansion',
-                    expansionItems: selected
-                });
 
-                const existing = Array.isArray(Entry.expansionBlocks)
-                    ? Entry.expansionBlocks
-                    : [];
-                const addBlocks = selected.filter(({ name }) => !existing.includes(name));
-
-                if (addBlocks.length && Entry.playground?.addExpansionBlocks) {
-                    Entry.playground.addExpansionBlocks(addBlocks, true, true);
-                }
-                return;
-            }
-
-            if (currentType === 'aiUtilize') {
-                // 엔트리 문서의 AI 블록 등록 방식
-                Entry.dispatchEvent('popupAddBlocks', {
-                    category: 'ai_utilize',
-                    aiUtilizeItems: selected
-                });
-
-                const existing = Array.isArray(Entry.aiUtilizeBlocks)
-                    ? Entry.aiUtilizeBlocks
-                    : [];
-                const addBlocks = selected.filter(({ name }) => !existing.includes(name));
-
-                if (addBlocks.length && Entry.playground?.addAIUtilizeBlocks) {
-                    Entry.playground.addAIUtilizeBlocks(addBlocks, true, true);
-                }
-            }
-        });
-
-        // 직접 버튼으로 여는 경우에도 Entry WS의 openManager 이벤트와 동일하게 동작
-        window.openEntryTableManager = function() {
-            currentType = 'table';
-            popup.show(
-                { type: 'table' },
-                { data: { data: tableItemsFromWS() } }
-            );
-        };
-
-        window.openExpansionBlockManager = function() {
-            currentType = 'expansion';
-            const blocks = getExpansionBlocks();
-            popup.show(
-                { type: 'expansion' },
-                { data: { data: blocks } }
-            );
-        };
-
-        window.openAIUtilizeBlockManager = function() {
-            currentType = 'aiUtilize';
-            const blocks = getAIUtilizeBlocks();
-            popup.show(
-                { type: 'aiUtilize' },
-                { data: { data: blocks } }
-            );
-        };
-
-        // 엔트리 WS 내부 버튼에서도 정상적으로 팝업이 열리도록 이벤트 연결
-        removeAllEventListener('openTableManager');
-        addEventListener('openTableManager', window.openEntryTableManager);
-
-        removeAllEventListener('openExpansionBlockManager');
-        addEventListener('openExpansionBlockManager', window.openExpansionBlockManager);
-
-        removeAllEventListener('openAIUtilizeBlockManager');
-        addEventListener('openAIUtilizeBlockManager', window.openAIUtilizeBlockManager);
-
-        /*
-         * currentType(sprite/picture/sound)에 맞게 items를 실제 WS에 반영하는 공통 처리
-         * -> select 탭에서 추가할 땐 'submit' 이벤트, upload 탭에서 추가할 땐 'uploads' 이벤트로
-         *    서로 다르게 들어오기 때문에 공통 함수로 뽑아서 둘 다 사용합니다.
-         */
-        const applyItemsByType = (items) => {
-            if (!Array.isArray(items) || items.length === 0) {
-                return;
-            }
-
-            if (currentType === 'sprite') {
-                items.forEach((spriteItem) => {
-                    const item = JSON.parse(JSON.stringify(spriteItem));
-
-                    if (item.label && item.label.ko) {
-                        item.name = item.label.ko;
-                    }
-
-                    if (!item.id) {
-                        item.id = Entry.generateHash();
-                    }
-
-                    if (item.pictures && Array.isArray(item.pictures)) {
-                        item.pictures.forEach((picture) => {
-                            const ext = picture.imageType || 'png';
-
-                            if (!picture.fileurl && picture.filename) {
-                                picture.fileurl =
-                                    `https://playentry.org/uploads/` +
-                                    `${picture.filename.substring(0, 2)}/` +
-                                    `${picture.filename.substring(2, 4)}/` +
-                                    `image/` +
-                                    `${picture.filename}.${ext}`;
-                            }
-
-                            if (!picture.id) {
-                                picture.id = Entry.generateHash();
-                            }
-                        });
-                    } else {
-                        // 업로드 탭을 통해 들어온 sprite의 경우 pictures가 비어있을 수 있으므로
-                        // 업로드된 이미지 자체를 picture로 보정
-                        item.pictures = item.pictures || [];
-                        if (item.fileurl && item.pictures.length === 0) {
-                            item.pictures.push({
-                                id: Entry.generateHash(),
-                                name: item.name,
-                                label: item.label,
-                                filename: item.filename,
-                                fileurl: item.fileurl,
-                                imageType: item.imageType || 'png',
-                                dimension: item.dimension || { width: 100, height: 100 },
-                            });
-                        }
-                    }
-
-                    // sprite 오브젝트는 sounds, category가 필수이므로 없으면 보정
-                    item.sounds = item.sounds || [];
-                    item.category = item.category || { main: 'new', sub: null };
-
-                    const object = {
-                        id: Entry.generateHash(),
-                        name: item.name || '오브젝트',
-                        objectType: 'sprite',
-                        sprite: item,
-                    };
-
-                    Entry.container.addObject(object, 0);
-                });
-
-                return;
-            }
-
-            if (currentType === 'picture') {
-                items.forEach((pictureItem) => {
-                    const item = {
-                        ...pictureItem,
-                        id: Entry.generateHash(),
-                        imageType: pictureItem.imageType || 'png',
-                    };
-
-                    Entry.playground.addPicture(item, true);
-                });
-
-                return;
-            }
-
-            if (currentType === 'sound') {
-                items.forEach((soundItem) => {
-                    const item = {
-                        ...soundItem,
-                        id: Entry.generateHash(),
-                    };
-
-                    Entry.playground.addSound(item, true);
-                });
-            }
-        };
-
-        /*
-         * 팝업에서 "추가"를 눌렀을 때 (select 탭)
-         * -> 실제로 넘어오는 datas는 배열이 아니라 { selected: [...] } 형태이므로
-         *    datas.selected를 꺼내서 사용해야 합니다.
-         */
-        popup.on('submit', (datas) => {
-            console.log('submit datas:', datas);
-
-            const items = Array.isArray(datas) ? datas : datas && datas.selected;
-
-            if (!Array.isArray(items) || items.length === 0) {
-                console.warn('submit: 처리할 아이템이 없습니다.', datas);
-                return;
-            }
-
-            applyItemsByType(items);
-        });
-
-        /*
-         * 파일 올리기 탭에서 "추가하기"를 눌렀을 때 발생하는 이벤트
-         * -> submit과는 별개의 이벤트이므로 반드시 따로 등록해야 합니다.
-         */
-        popup.on('uploads', (data) => {
-            console.log('uploads data:', data);
-
-            const items = Array.isArray(data) ? data : data && data.uploads;
-
-            if (!Array.isArray(items) || items.length === 0) {
-                console.warn('uploads: 처리할 아이템이 없습니다.', data);
-                return;
-            }
-
-            applyItemsByType(items);
-        });
-
-        /*
-         * 새로 그리기
-         * -> entry-offline(entryModalHelper.ts)의 실제 구현을 참고.
-         *    별도 그림판 팝업을 띄우는 게 아니라, 빈(투명) 이미지를 가진 오브젝트/모양을
-         *    먼저 추가한 뒤 모양 탭으로 화면을 전환해서, 그 안에서 Entry 내장 그림 편집
-         *    도구로 그리게 하는 방식입니다.
-         */
-        // 1x1 투명 PNG (외부 파일 없이 바로 사용 가능한 placeholder)
-        const blankPictureDataUrl =
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
-
-        popup.on('draw', () => {
-            console.log('draw 이벤트 발생 - 빈 그림 추가 후 모양 탭으로 전환');
-
-            if (currentType === 'sprite') {
-                const object = {
-                    id: Entry.generateHash(),
-                    objectType: 'sprite',
-                    sprite: {
-                        name: `새 오브젝트${Entry.container.getAllObjects().length + 1}`,
-                        pictures: [
-                            {
-                                id: Entry.generateHash(),
-                                name: '새로운 모양',
-                                dimension: { width: 960, height: 540 },
-                                fileurl: blankPictureDataUrl,
-                                imageType: 'png',
-                            },
-                        ],
-                        sounds: [],
-                        category: { main: 'new' },
-                    },
-                };
-
-                Entry.container.addObject(object, 0);
-                Entry.playground.changeViewMode('picture');
-                return;
-            }
-
-            if (currentType === 'picture') {
-                const item = {
-                    id: Entry.generateHash(),
-                    name: '새로운 모양',
-                    dimension: { width: 960, height: 540 },
-                    fileurl: blankPictureDataUrl,
-                    imageType: 'png',
-                };
-
-                Entry.playground.addPicture(item, true);
-            }
-        });
-
-        /*
-         * 파일 올리기 (임시 업로드)
-         * -> dummyUploads를 받아서 setData로 되돌려주지 않으면
-         *    팝업이 계속 응답을 기다리며 무한 로딩 상태에 머뭅니다.
-         */
-        popup.on('dummyUploads', async ({ formData, objectData }) => {
-            console.log('dummyUploads', formData, objectData);
-
-            // table은 CSV 업로드를 통해 임시 데이터를 만들어야 합니다.
-            if (currentType === 'table') {
-                try {
-                    const files = formData
-                        ? Array.from(formData.values()).filter((v) => v instanceof File)
-                        : [];
-
-                    const uploads = await Promise.all(files.map(async (file) => {
-                        const text = await file.text();
-                        const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean);
-                        const rows = lines.map((line) => {
-                            // 일반적인 CSV용 최소 파서: 따옴표 안의 쉼표도 보존
-                            const result = [];
-                            let value = '';
-                            let quoted = false;
-                            for (let i = 0; i < line.length; i++) {
-                                const ch = line[i];
-                                if (ch === '"') {
-                                    if (quoted && line[i + 1] === '"') {
-                                        value += '"';
-                                        i++;
-                                    } else {
-                                        quoted = !quoted;
-                                    }
-                                } else if (ch === ',' && !quoted) {
-                                    result.push(value);
-                                    value = '';
-                                } else {
-                                    value += ch;
-                                }
-                            }
-                            result.push(value);
-                            return result;
-                        });
-
-                        const fields = rows[0] || [];
-                        const data = rows.slice(1);
-                        return {
-                            _id: Entry.generateHash(),
-                            name: file.name,
-                            lang: 'ko',
-                            url: '',
-                            rows: data.length,
-                            fields,
-                            fieldInfos: [],
-                            provider: 'user',
-                            summary: '',
-                            description: '',
-                            exampleurl: null,
-                            linkText: '',
-                            isOpen: true,
-                            projectTable: {
-                                _id: Entry.generateHash(),
-                                chart: [],
-                                fields,
-                                type: 'user',
-                                data,
-                                name: file.name
-                            },
-                            updated: new Date().toISOString(),
-                            hasOtherTypes: false,
-                            otherTypes: []
-                        };
-                    }));
-
-                    popup.setData({ data: { uploads, data: [] } });
-                } catch (err) {
-                    console.error('table CSV 처리 실패', err);
-                }
-                return;
-            }
-
-            // 기존 sprite/picture 업로드 처리
-            try {
-                const files = formData
-                    ? Array.from(formData.values()).filter((v) => v instanceof File)
-                    : [];
-
-                const uploads = await Promise.all(
-                    files.map(
-                        (file) =>
-                            new Promise((resolve) => {
-                                const reader = new FileReader();
-                                reader.onload = () => {
-                                    const ext =
-                                        (file.name.split('.').pop() || 'png').toLowerCase();
-                                    const fileurl = reader.result;
-
-                                    // 실제 이미지 가로/세로를 측정해서 dimension에 반영
-                                    // (0x0으로 두면 렌더링 단계에서 내부 에러가 날 수 있음)
-                                    const img = new Image();
-                                    img.onload = () => {
-                                        resolve({
-                                            id: Entry.generateHash(),
-                                            name: file.name,
-                                            label: { ko: file.name },
-                                            filename: file.name,
-                                            fileurl,
-                                            imageType: ext,
-                                            dimension: {
-                                                width: img.naturalWidth || 100,
-                                                height: img.naturalHeight || 100,
-                                            },
-                                        });
-                                    };
-                                    img.onerror = () => {
-                                        // 이미지로 못 읽는 파일(svg 예외 케이스 등) 대비 기본값ㅇ
-                                        resolve({
-                                            id: Entry.generateHash(),
-                                            name: file.name,
-                                            label: { ko: file.name },
-                                            filename: file.name,
-                                            fileurl,
-                                            imageType: ext,
-                                            dimension: { width: 100, height: 100 },
-                                        });
-                                    };
-                                    img.src = fileurl;
-                                };
-                                reader.readAsDataURL(file);
-                            })
-                    )
+            const sources =
+                dataTable.sources ||
+                (
+                    typeof dataTable.getSources ===
+                    'function'
+                        ? dataTable.getSources()
+                        : []
                 );
 
-                // 업로드 임시 데이터를 팝업 화면에 반영 (이게 있어야 로딩이 끝남)
-                popup.setData({
-                    data: { uploads, data: [] },
-                });
-            } catch (err) {
-                console.error('dummyUploads 처리 실패', err);
-            }
-        });
 
-        popup.on('uploads', (data) => {
-            if (currentType === 'table') {
-                const uploads = Array.isArray(data)
-                    ? data
-                    : (data && Array.isArray(data.uploads) ? data.uploads : []);
+            return Array.isArray(sources)
+                ? sources
+                : Object.values(sources || {});
 
-                uploads.forEach((tableItem) => {
-                    if (!tableItem || !Entry.playground?.dataTable) return;
-                    Entry.playground.dataTable.addSources(tableItem);
-                    Entry.creationChangedEvent.notify();
-                });
-                return;
+        };
+
+
+        const getExpansionBlocks = () => {
+
+            if (
+                Array.isArray(
+                    popup.expansionBlocks
+                )
+            ) {
+
+                return popup.expansionBlocks;
+
             }
 
-            const uploads = Array.isArray(data)
-                ? data
-                : (data && Array.isArray(data.uploads) ? data.uploads : []);
-            if (uploads.length) applyItemsByType(uploads);
-        });
 
-        popup.on('uploadFail', (data) => {
-            console.error('upload fail', data);
-            alert(`${data?.messageParent || ''}${data?.message || '업로드에 실패했습니다.'}`);
-        });
+            if (Entry.EXPANSION_BLOCK_LIST) {
+
+                return Object.values(
+                    Entry.EXPANSION_BLOCK_LIST
+                );
+
+            }
+
+
+            if (Entry.EXPANSION_BLOCK) {
+
+                return Object.values(
+                    Entry.EXPANSION_BLOCK
+                );
+
+            }
+
+
+            return [];
+
+        };
+
+
+        const getAIUtilizeBlocks = () => {
+
+            if (
+                Array.isArray(
+                    popup.aiUtilizeBlocks
+                )
+            ) {
+
+                return popup.aiUtilizeBlocks;
+
+            }
+
+
+            if (Entry.AI_UTILIZE_BLOCK_LIST) {
+
+                return Object.values(
+                    Entry.AI_UTILIZE_BLOCK_LIST
+                );
+
+            }
+
+
+            if (Entry.AI_UTILIZE_BLOCK) {
+
+                return Object.values(
+                    Entry.AI_UTILIZE_BLOCK
+                );
+
+            }
+
+
+            return [];
+
+        };
+
 
         /*
-         * 글상자
+         * ========================================
+         * 테이블 / 확장 / AI submit
+         * ========================================
          */
-        popup.on('write', (data) => {
-            const object = {
-                id: Entry.generateHash(),
-                name: '글상자',
-                text: data.text,
 
-                options: {
-                    font: data.font,
-                    bold: false,
-                    underLine: false,
-                    italic: false,
-                    strike:
-                        (data.effects &&
-                            data.effects.through) ||
-                        false,
-                    colour:
-                        (data.effects &&
-                            data.effects.color) ||
-                        '#000000',
-                    background:
-                        (data.effects &&
-                            data.effects.backgroundColor) ||
-                        '#ffffff',
-                    lineBreak: data.writeType !== 'one',
-                    ...(data.effects || {})
-                },
+        popup.on(
+            'submit',
+            (datas) => {
 
-                objectType: 'textBox',
+                const selected =
+                    Array.isArray(datas)
+                        ? datas
+                        : (
+                            datas &&
+                            Array.isArray(
+                                datas.selected
+                            )
+                                ? datas.selected
+                                : []
+                        );
 
-                sprite: {
-                    sounds: [],
-                    pictures: []
+
+                if (!selected.length) {
+
+                    return;
+
                 }
+
+
+                if (
+                    currentType ===
+                    'table'
+                ) {
+
+                    selected.forEach(
+                        (tableItem) => {
+
+                            if (
+                                !tableItem ||
+                                !Entry.playground?.dataTable
+                            ) {
+
+                                return;
+
+                            }
+
+
+                            Entry.playground.dataTable
+                                .addSources(
+                                    tableItem
+                                );
+
+
+                            Entry.creationChangedEvent
+                                .notify();
+
+                        }
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    currentType ===
+                    'expansion'
+                ) {
+
+                    Entry.dispatchEvent(
+                        'popupAddBlocks',
+                        {
+
+                            category:
+                                'expansion',
+
+                            expansionItems:
+                                selected
+
+                        }
+                    );
+
+
+                    const existing =
+                        Array.isArray(
+                            Entry.expansionBlocks
+                        )
+                            ? Entry.expansionBlocks
+                            : [];
+
+
+                    const addBlocks =
+                        selected.filter(
+                            ({ name }) =>
+                                !existing.includes(name)
+                        );
+
+
+                    if (
+                        addBlocks.length &&
+                        Entry.playground?.addExpansionBlocks
+                    ) {
+
+                        Entry.playground.addExpansionBlocks(
+                            addBlocks,
+                            true,
+                            true
+                        );
+
+                    }
+
+
+                    return;
+
+                }
+
+
+                if (
+                    currentType ===
+                    'aiUtilize'
+                ) {
+
+                    Entry.dispatchEvent(
+                        'popupAddBlocks',
+                        {
+
+                            category:
+                                'ai_utilize',
+
+                            aiUtilizeItems:
+                                selected
+
+                        }
+                    );
+
+
+                    const existing =
+                        Array.isArray(
+                            Entry.aiUtilizeBlocks
+                        )
+                            ? Entry.aiUtilizeBlocks
+                            : [];
+
+
+                    const addBlocks =
+                        selected.filter(
+                            ({ name }) =>
+                                !existing.includes(name)
+                        );
+
+
+                    if (
+                        addBlocks.length &&
+                        Entry.playground?.addAIUtilizeBlocks
+                    ) {
+
+                        Entry.playground.addAIUtilizeBlocks(
+                            addBlocks,
+                            true,
+                            true
+                        );
+
+                    }
+
+                }
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * Manager 직접 호출
+         * ========================================
+         */
+
+        window.openEntryTableManager =
+            function() {
+
+                currentType =
+                    'table';
+
+
+                popup.show(
+
+                    {
+                        type:
+                            'table'
+                    },
+
+                    {
+
+                        data: {
+
+                            data:
+                                tableItemsFromWS()
+
+                        }
+
+                    }
+
+                );
+
             };
 
-            Entry.container.addObject(object, 0);
-        });
+
+        window.openExpansionBlockManager =
+            function() {
+
+                currentType =
+                    'expansion';
+
+
+                const blocks =
+                    getExpansionBlocks();
+
+
+                popup.show(
+
+                    {
+                        type:
+                            'expansion'
+                    },
+
+                    {
+
+                        data: {
+
+                            data:
+                                blocks
+
+                        }
+
+                    }
+
+                );
+
+            };
+
+
+        window.openAIUtilizeBlockManager =
+            function() {
+
+                currentType =
+                    'aiUtilize';
+
+
+                const blocks =
+                    getAIUtilizeBlocks();
+
+
+                popup.show(
+
+                    {
+                        type:
+                            'aiUtilize'
+                    },
+
+                    {
+
+                        data: {
+
+                            data:
+                                blocks
+
+                        }
+
+                    }
+
+                );
+
+            };
+
 
         /*
-         * Entry 매니저 이벤트
+         * Entry WS 내부 버튼 연결
          */
+
+        removeAllEventListener(
+            'openTableManager'
+        );
+
+        addEventListener(
+            'openTableManager',
+            window.openEntryTableManager
+        );
+
+
+        removeAllEventListener(
+            'openExpansionManager'
+        );
+
+        addEventListener(
+            'openExpansionManager',
+            window.openExpansionBlockManager
+        );
+
+
+        removeAllEventListener(
+            'openAIUtilizeManager'
+        );
+
+        addEventListener(
+            'openAIUtilizeManager',
+            window.openAIUtilizeBlockManager
+        );
+
+
+        /*
+         * ========================================
+         * 오브젝트 / 그림 / 소리 추가
+         * ========================================
+         */
+
+        const applyItemsByType =
+            (items) => {
+
+                if (
+                    !Array.isArray(items) ||
+                    items.length === 0
+                ) {
+
+                    return;
+
+                }
+
+
+                /*
+                 * Sprite
+                 */
+
+                if (
+                    currentType ===
+                    'sprite'
+                ) {
+
+                    items.forEach(
+                        (spriteItem) => {
+
+                            const item =
+                                JSON.parse(
+                                    JSON.stringify(
+                                        spriteItem
+                                    )
+                                );
+
+
+                            if (
+                                item.label &&
+                                item.label.ko
+                            ) {
+
+                                item.name =
+                                    item.label.ko;
+
+                            }
+
+
+                            if (!item.id) {
+
+                                item.id =
+                                    Entry.generateHash();
+
+                            }
+
+
+                            if (
+                                item.pictures &&
+                                Array.isArray(
+                                    item.pictures
+                                )
+                            ) {
+
+                                item.pictures.forEach(
+                                    (picture) => {
+
+                                        const ext =
+                                            picture.imageType ||
+                                            'png';
+
+
+                                        if (
+                                            !picture.fileurl &&
+                                            picture.filename
+                                        ) {
+
+                                            picture.fileurl =
+                                                `https://playentry.org/uploads/` +
+                                                `${picture.filename.substring(0, 2)}/` +
+                                                `${picture.filename.substring(2, 4)}/` +
+                                                `image/` +
+                                                `${picture.filename}.${ext}`;
+
+                                        }
+
+
+                                        if (!picture.id) {
+
+                                            picture.id =
+                                                Entry.generateHash();
+
+                                        }
+
+                                    }
+                                );
+
+                            } else {
+
+                                item.pictures =
+                                    item.pictures ||
+                                    [];
+
+
+                                if (
+                                    item.fileurl &&
+                                    item.pictures.length === 0
+                                ) {
+
+                                    item.pictures.push({
+
+                                        id:
+                                            Entry.generateHash(),
+
+                                        name:
+                                            item.name,
+
+                                        label:
+                                            item.label,
+
+                                        filename:
+                                            item.filename,
+
+                                        fileurl:
+                                            item.fileurl,
+
+                                        imageType:
+                                            item.imageType ||
+                                            'png',
+
+                                        dimension:
+                                            item.dimension ||
+                                            {
+                                                width:
+                                                    100,
+
+                                                height:
+                                                    100
+                                            }
+
+                                    });
+
+                                }
+
+                            }
+
+
+                            item.sounds =
+                                item.sounds ||
+                                [];
+
+
+                            item.category =
+                                item.category ||
+                                {
+                                    main:
+                                        'new',
+
+                                    sub:
+                                        null
+                                };
+
+
+                            const object = {
+
+                                id:
+                                    Entry.generateHash(),
+
+                                name:
+                                    item.name ||
+                                    '오브젝트',
+
+                                objectType:
+                                    'sprite',
+
+                                sprite:
+                                    item
+
+                            };
+
+
+                            Entry.container.addObject(
+                                object,
+                                0
+                            );
+
+                        }
+                    );
+
+
+                    return;
+
+                }
+
+
+                /*
+                 * Picture
+                 */
+
+                if (
+                    currentType ===
+                    'picture'
+                ) {
+
+                    items.forEach(
+                        (pictureItem) => {
+
+                            const item = {
+
+                                ...pictureItem,
+
+                                id:
+                                    Entry.generateHash(),
+
+                                imageType:
+                                    pictureItem.imageType ||
+                                    'png'
+
+                            };
+
+
+                            Entry.playground.addPicture(
+                                item,
+                                true
+                            );
+
+                        }
+                    );
+
+
+                    return;
+
+                }
+
+
+                /*
+                 * Sound
+                 */
+
+                if (
+                    currentType ===
+                    'sound'
+                ) {
+
+                    items.forEach(
+                        (soundItem) => {
+
+                            const item = {
+
+                                ...soundItem,
+
+                                id:
+                                    Entry.generateHash()
+
+                            };
+
+
+                            Entry.playground.addSound(
+                                item,
+                                true
+                            );
+
+                        }
+                    );
+
+                }
+
+            };
+
+
+        /*
+         * ========================================
+         * Select 탭 submit
+         * ========================================
+         */
+
+        popup.on(
+            'submit',
+            (datas) => {
+
+                console.log(
+                    'submit datas:',
+                    datas
+                );
+
+
+                const items =
+                    Array.isArray(datas)
+                        ? datas
+                        : (
+                            datas &&
+                            datas.selected
+                        );
+
+
+                if (
+                    !Array.isArray(items) ||
+                    items.length === 0
+                ) {
+
+                    console.warn(
+                        'submit: 처리할 아이템이 없습니다.',
+                        datas
+                    );
+
+                    return;
+
+                }
+
+
+                applyItemsByType(
+                    items
+                );
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * Upload 탭
+         * ========================================
+         */
+
+        popup.on(
+            'uploads',
+            (data) => {
+
+                console.log(
+                    'uploads data:',
+                    data
+                );
+
+
+                const items =
+                    Array.isArray(data)
+                        ? data
+                        : (
+                            data &&
+                            data.uploads
+                        );
+
+
+                if (
+                    !Array.isArray(items) ||
+                    items.length === 0
+                ) {
+
+                    console.warn(
+                        'uploads: 처리할 아이템이 없습니다.',
+                        data
+                    );
+
+                    return;
+
+                }
+
+
+                applyItemsByType(
+                    items
+                );
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * 새로 그리기
+         * ========================================
+         */
+
+        const blankPictureDataUrl =
+            'data:image/png;base64,' +
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+
+
+        popup.on(
+            'draw',
+            () => {
+
+                console.log(
+                    'draw 이벤트 발생 - 빈 그림 추가 후 모양 탭으로 전환'
+                );
+
+
+                if (
+                    currentType ===
+                    'sprite'
+                ) {
+
+                    const object = {
+
+                        id:
+                            Entry.generateHash(),
+
+                        objectType:
+                            'sprite',
+
+                        sprite: {
+
+                            name:
+                                `새 오브젝트${
+                                    Entry.container.getAllObjects().length + 1
+                                }`,
+
+                            pictures: [
+
+                                {
+
+                                    id:
+                                        Entry.generateHash(),
+
+                                    name:
+                                        '새로운 모양',
+
+                                    dimension: {
+
+                                        width:
+                                            960,
+
+                                        height:
+                                            540
+
+                                    },
+
+                                    fileurl:
+                                        blankPictureDataUrl,
+
+                                    imageType:
+                                        'png'
+
+                                }
+
+                            ],
+
+                            sounds: [],
+
+                            category: {
+
+                                main:
+                                    'new'
+
+                            }
+
+                        }
+
+                    };
+
+
+                    Entry.container.addObject(
+                        object,
+                        0
+                    );
+
+
+                    Entry.playground.changeViewMode(
+                        'picture'
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    currentType ===
+                    'picture'
+                ) {
+
+                    const item = {
+
+                        id:
+                            Entry.generateHash(),
+
+                        name:
+                            '새로운 모양',
+
+                        dimension: {
+
+                            width:
+                                960,
+
+                            height:
+                                540
+
+                        },
+
+                        fileurl:
+                            blankPictureDataUrl,
+
+                        imageType:
+                            'png'
+
+                    };
+
+
+                    Entry.playground.addPicture(
+                        item,
+                        true
+                    );
+
+                }
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * dummyUploads
+         * ========================================
+         */
+
+        popup.on(
+            'dummyUploads',
+            async ({
+                formData,
+                objectData
+            }) => {
+
+                console.log(
+                    'dummyUploads',
+                    formData,
+                    objectData
+                );
+
+
+                /*
+                 * Table CSV
+                 */
+
+                if (
+                    currentType ===
+                    'table'
+                ) {
+
+                    try {
+
+                        const files =
+                            formData
+                                ? Array.from(
+                                    formData.values()
+                                ).filter(
+                                    (v) =>
+                                        v instanceof File
+                                )
+                                : [];
+
+
+                        const uploads =
+                            await Promise.all(
+                                files.map(
+                                    async (file) => {
+
+                                        const text =
+                                            await file.text();
+
+
+                                        const lines =
+                                            text
+                                                .replace(
+                                                    /^\uFEFF/,
+                                                    ''
+                                                )
+                                                .split(
+                                                    /\r?\n/
+                                                )
+                                                .filter(
+                                                    Boolean
+                                                );
+
+
+                                        const rows =
+                                            lines.map(
+                                                (line) => {
+
+                                                    const result =
+                                                        [];
+
+                                                    let value =
+                                                        '';
+
+                                                    let quoted =
+                                                        false;
+
+
+                                                    for (
+                                                        let i = 0;
+                                                        i < line.length;
+                                                        i++
+                                                    ) {
+
+                                                        const ch =
+                                                            line[i];
+
+
+                                                        if (
+                                                            ch ===
+                                                            '"'
+                                                        ) {
+
+                                                            if (
+                                                                quoted &&
+                                                                line[i + 1] ===
+                                                                    '"'
+                                                            ) {
+
+                                                                value +=
+                                                                    '"';
+
+                                                                i++;
+
+                                                            } else {
+
+                                                                quoted =
+                                                                    !quoted;
+
+                                                            }
+
+                                                        } else if (
+                                                            ch ===
+                                                            ',' &&
+                                                            !quoted
+                                                        ) {
+
+                                                            result.push(
+                                                                value
+                                                            );
+
+                                                            value =
+                                                                '';
+
+                                                        } else {
+
+                                                            value +=
+                                                                ch;
+
+                                                        }
+
+                                                    }
+
+
+                                                    result.push(
+                                                        value
+                                                    );
+
+
+                                                    return result;
+
+                                                }
+                                            );
+
+
+                                        const fields =
+                                            rows[0] ||
+                                            [];
+
+                                        const data =
+                                            rows.slice(1);
+
+
+                                        return {
+
+                                            _id:
+                                                Entry.generateHash(),
+
+                                            name:
+                                                file.name,
+
+                                            lang:
+                                                'ko',
+
+                                            url:
+                                                '',
+
+                                            rows:
+                                                data.length,
+
+                                            fields,
+
+                                            fieldInfos:
+                                                [],
+
+                                            provider:
+                                                'user',
+
+                                            summary:
+                                                '',
+
+                                            description:
+                                                '',
+
+                                            exampleurl:
+                                                null,
+
+                                            linkText:
+                                                '',
+
+                                            isOpen:
+                                                true,
+
+                                            projectTable: {
+
+                                                _id:
+                                                    Entry.generateHash(),
+
+                                                chart:
+                                                    [],
+
+                                                fields,
+
+                                                type:
+                                                    'user',
+
+                                                data,
+
+                                                name:
+                                                    file.name
+
+                                            },
+
+                                            updated:
+                                                new Date()
+                                                    .toISOString(),
+
+                                            hasOtherTypes:
+                                                false,
+
+                                            otherTypes:
+                                                []
+
+                                        };
+
+                                    }
+                                )
+                            );
+
+
+                        popup.setData({
+
+                            data: {
+
+                                uploads,
+
+                                data: []
+
+                            }
+
+                        });
+
+                    } catch (err) {
+
+                        console.error(
+                            'table CSV 처리 실패',
+                            err
+                        );
+
+                    }
+
+
+                    return;
+
+                }
+
+
+                /*
+                 * Sprite / Picture 업로드
+                 */
+
+                try {
+
+                    const files =
+                        formData
+                            ? Array.from(
+                                formData.values()
+                            ).filter(
+                                (v) =>
+                                    v instanceof File
+                            )
+                            : [];
+
+
+                    const uploads =
+                        await Promise.all(
+
+                            files.map(
+
+                                (file) =>
+
+                                    new Promise(
+                                        (resolve) => {
+
+                                            const reader =
+                                                new FileReader();
+
+
+                                            reader.onload =
+                                                () => {
+
+                                                    const ext =
+                                                        (
+                                                            file.name
+                                                                .split('.')
+                                                                .pop() ||
+                                                            'png'
+                                                        ).toLowerCase();
+
+
+                                                    const fileurl =
+                                                        reader.result;
+
+
+                                                    const img =
+                                                        new Image();
+
+
+                                                    img.onload =
+                                                        () => {
+
+                                                            resolve({
+
+                                                                id:
+                                                                    Entry.generateHash(),
+
+                                                                name:
+                                                                    file.name,
+
+                                                                label: {
+
+                                                                    ko:
+                                                                        file.name
+
+                                                                },
+
+                                                                filename:
+                                                                    file.name,
+
+                                                                fileurl,
+
+                                                                imageType:
+                                                                    ext,
+
+                                                                dimension: {
+
+                                                                    width:
+                                                                        img.naturalWidth ||
+                                                                        100,
+
+                                                                    height:
+                                                                        img.naturalHeight ||
+                                                                        100
+
+                                                                }
+
+                                                            });
+
+                                                        };
+
+
+                                                    img.onerror =
+                                                        () => {
+
+                                                            resolve({
+
+                                                                id:
+                                                                    Entry.generateHash(),
+
+                                                                name:
+                                                                    file.name,
+
+                                                                label: {
+
+                                                                    ko:
+                                                                        file.name
+
+                                                                },
+
+                                                                filename:
+                                                                    file.name,
+
+                                                                fileurl,
+
+                                                                imageType:
+                                                                    ext,
+
+                                                                dimension: {
+
+                                                                    width:
+                                                                        100,
+
+                                                                    height:
+                                                                        100
+
+                                                                }
+
+                                                            });
+
+                                                        };
+
+
+                                                    img.src =
+                                                        fileurl;
+
+                                                };
+
+
+                                            reader.readAsDataURL(
+                                                file
+                                            );
+
+                                        }
+                                    )
+
+                            )
+
+                        );
+
+
+                    popup.setData({
+
+                        data: {
+
+                            uploads,
+
+                            data: []
+
+                        }
+
+                    });
+
+                } catch (err) {
+
+                    console.error(
+                        'dummyUploads 처리 실패',
+                        err
+                    );
+
+                }
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * Upload 완료
+         * ========================================
+         */
+
+        popup.on(
+            'uploads',
+            (data) => {
+
+                if (
+                    currentType ===
+                    'table'
+                ) {
+
+                    const uploads =
+                        Array.isArray(data)
+                            ? data
+                            : (
+                                data &&
+                                Array.isArray(
+                                    data.uploads
+                                )
+                                    ? data.uploads
+                                    : []
+                            );
+
+
+                    uploads.forEach(
+                        (tableItem) => {
+
+                            if (
+                                !tableItem ||
+                                !Entry.playground?.dataTable
+                            ) {
+
+                                return;
+
+                            }
+
+
+                            Entry.playground.dataTable
+                                .addSources(
+                                    tableItem
+                                );
+
+
+                            Entry.creationChangedEvent
+                                .notify();
+
+                        }
+                    );
+
+
+                    return;
+
+                }
+
+
+                const uploads =
+                    Array.isArray(data)
+                        ? data
+                        : (
+                            data &&
+                            Array.isArray(
+                                data.uploads
+                            )
+                                ? data.uploads
+                                : []
+                        );
+
+
+                if (uploads.length) {
+
+                    applyItemsByType(
+                        uploads
+                    );
+
+                }
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * 업로드 실패
+         * ========================================
+         */
+
+        popup.on(
+            'uploadFail',
+            (data) => {
+
+                console.error(
+                    'upload fail',
+                    data
+                );
+
+
+                alert(
+                    `${
+                        data?.messageParent ||
+                        ''
+                    }${
+                        data?.message ||
+                        '업로드에 실패했습니다.'
+                    }`
+                );
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * 글상자
+         * ========================================
+         */
+
+        popup.on(
+            'write',
+            (data) => {
+
+                const object = {
+
+                    id:
+                        Entry.generateHash(),
+
+                    name:
+                        '글상자',
+
+                    text:
+                        data.text,
+
+                    options: {
+
+                        font:
+                            data.font,
+
+                        bold:
+                            false,
+
+                        underLine:
+                            false,
+
+                        italic:
+                            false,
+
+                        strike:
+                            (
+                                data.effects &&
+                                data.effects.through
+                            ) ||
+                            false,
+
+                        colour:
+                            (
+                                data.effects &&
+                                data.effects.color
+                            ) ||
+                            '#000000',
+
+                        background:
+                            (
+                                data.effects &&
+                                data.effects.backgroundColor
+                            ) ||
+                            '#ffffff',
+
+                        lineBreak:
+                            data.writeType !==
+                            'one',
+
+                        ...(
+                            data.effects ||
+                            {}
+                        )
+
+                    },
+
+                    objectType:
+                        'textBox',
+
+                    sprite: {
+
+                        sounds: [],
+
+                        pictures: []
+
+                    }
+
+                };
+
+
+                Entry.container.addObject(
+                    object,
+                    0
+                );
+
+            }
+        );
+
+
+        /*
+         * ========================================
+         * Entry Manager 이벤트
+         * ========================================
+         */
+
+
         /*
          * 오브젝트 추가
          */
-        removeAllEventListener('openSpriteManager');
 
-        addEventListener('openSpriteManager', () => {
-            currentType = 'sprite';
+        removeAllEventListener(
+            'openSpriteManager'
+        );
 
-            popup.show(
-                { type: 'sprite' },
-                {
-                    sidebar: spriteSidebarData,
 
-                    data: {
-                        imageBaseUrl:
-                            'https://playentry.org/uploads/',
-                        data: officialSpriteData
+        addEventListener(
+            'openSpriteManager',
+            () => {
+
+                currentType =
+                    'sprite';
+
+
+                popup.show(
+
+                    {
+                        type:
+                            'sprite'
+                    },
+
+                    {
+
+                        sidebar:
+                            spriteSidebarData,
+
+                        data: {
+
+                            imageBaseUrl:
+                                'https://playentry.org/uploads/',
+
+                            data:
+                                officialSpriteData
+
+                        }
+
                     }
-                }
-            );
-        });
+
+                );
+
+            }
+        );
+
 
         /*
          * 그림 추가
          */
-        removeAllEventListener('openPictureManager');
 
-        addEventListener('openPictureManager', () => {
-            currentType = 'picture';
+        removeAllEventListener(
+            'openPictureManager'
+        );
 
-            // sidebar/data를 명시적으로 비워서 sprite 팝업에서 쓰던 데이터가
-            // Object.assign으로 그대로 남아있지 않도록 함
-            popup.show(
-                { type: 'picture' },
-                {
-                    sidebar: {},
-                    data: { imageBaseUrl: '', data: [] },
-                }
-            );
-        });
+
+        addEventListener(
+            'openPictureManager',
+            () => {
+
+                currentType =
+                    'picture';
+
+
+                popup.show(
+
+                    {
+                        type:
+                            'picture'
+                    },
+
+                    {
+
+                        sidebar:
+                            {},
+
+                        data: {
+
+                            imageBaseUrl:
+                                '',
+
+                            data:
+                                []
+
+                        }
+
+                    }
+
+                );
+
+            }
+        );
+
 
         /*
          * 소리 추가
          */
-        removeAllEventListener('openSoundManager');
 
-        addEventListener('openSoundManager', () => {
-            currentType = 'sound';
+        removeAllEventListener(
+            'openSoundManager'
+        );
 
-            // 마찬가지로 sidebar/data 초기화
-            popup.show(
-                { type: 'sound' },
-                {
-                    sidebar: {},
-                    data: { imageBaseUrl: '', data: [] },
-                }
-            );
-        });
+
+        addEventListener(
+            'openSoundManager',
+            () => {
+
+                currentType =
+                    'sound';
+
+
+                popup.show(
+
+                    {
+                        type:
+                            'sound'
+                    },
+
+                    {
+
+                        sidebar:
+                            {},
+
+                        data: {
+
+                            imageBaseUrl:
+                                '',
+
+                            data:
+                                []
+
+                        }
+
+                    }
+
+                );
+
+            }
+        );
+
     });
 </script>
     </body>
