@@ -1712,99 +1712,18 @@ alert(
                  * 프로젝트 로드가 끝난 뒤 실행
                  */
 
-                if (bicklePlayMode) {
-
-                    setTimeout(() => {
-
-                        try {
-
-                            const workspace =
-                                Entry.getMainWS?.();
-
-
-                            if (workspace) {
-
-                                workspace.resize();
-
-                            }
-
-
-                            if (
-                                Entry.creationChangedEvent
-                            ) {
-
-                                try {
-
-                                    Entry.creationChangedEvent.notify();
-
-                                } catch {}
-
-                            }
-
-
-                            window.dispatchEvent(
-                                new Event('resize')
-                            );
-
-
-                            /*
-                             * EntryJS 프로젝트 실행
-                             */
-
-                            if (
-                                typeof Entry.runProject ===
-                                'function'
-                            ) {
-
-                                console.log(
-                                    '[Bickle Play Mode] Entry.runProject()'
-                                );
-
-                                Entry.runProject();
-
-                            } else if (
-                                typeof Entry.playProject ===
-                                'function'
-                            ) {
-
-                                console.log(
-                                    '[Bickle Play Mode] Entry.playProject()'
-                                );
-
-                                Entry.playProject();
-
-                            } else if (
-                                Entry.engine &&
-                                typeof Entry.engine.run ===
-                                'function'
-                            ) {
-
-                                console.log(
-                                    '[Bickle Play Mode] Entry.engine.run()'
-                                );
-
-                                Entry.engine.run();
-
-                            } else {
-
-                                console.warn(
-                                    '[Bickle Play Mode] 프로젝트 실행 함수를 찾지 못했습니다.'
-                                );
-
-                            }
-
-                        } catch (error) {
-
-                            console.error(
-                                '[Bickle Play Mode]',
-                                error
-                            );
-
-                        }
-
-                    }, 300);
-
-                }
+                if (typeof Entry.runProject === 'function') {
+    Entry.runProject();
+} else if (typeof Entry.playProject === 'function') {
+    Entry.playProject();
+} else if (
+    Entry.engine &&
+    typeof Entry.engine.run === 'function'
+) {
+    Entry.engine.run();
+} else {
+    console.warn('[Bickle Play Mode] 프로젝트 실행 함수를 찾지 못했습니다.');
+}
 
 
             } catch (error) {
