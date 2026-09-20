@@ -262,6 +262,23 @@ body {
     cursor: wait;
     transform: none;
 }
+
+/* Bickle 서버 저장 */
+.bickle-save-button {
+    background: #35a853 !important;
+    color: #fff !important;
+    border-color: #2e8b46 !important;
+}
+
+.bickle-save-button:hover:not(:disabled) {
+    background: #2f984b !important;
+}
+
+.bickle-save-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
 </style>
 
 <section class="entryjs-toolbar">
@@ -528,7 +545,297 @@ body {
                 setTimeout(()=>URL.revokeObjectURL(u),1000);
             }
 
-            async function downloadENT(){
+            const BICKLE_API_BASE =
+    "https://bickle-api.iamthankun.workers.dev";
+
+let bickleProjectId = null;
+
+
+/*
+ * ========================================
+ * Bickle 현재 로그인 사용자 확인
+ * ========================================
+ */
+async function bickleGetMe() {
+
+    const response =
+        await fetch(
+            `${BICKLE_API_BASE}/api/auth/me`,
+            {
+                method: "GET",
+                credentials: "include"
+            }
+        );
+
+    let data = {};
+
+    try {
+        data = await response.json();
+    } catch {
+        data = {};
+    }
+
+    return {
+        response,
+        data
+    };
+}
+
+
+/*
+ * ========================================
+ * Bickle에 작품 저장
+ * ========================================
+ */
+async function saveToBickle() {
+
+    const button =
+        document.getElementById(
+            "bickleSaveButton"
+        );
+
+    try {
+
+        if (
+            typeof Entry?.exportProject !==
+            "function"
+        ) {
+            throw new Error(
+                "Entry.exportProject()를 찾을 수 없습니다."
+            );
+        }
+
+
+        button.disabled = true;
+
+        button.textContent =
+            "⏳ Bickle에 저장 중...";
+
+
+        /*
+         * 로그인 확인
+         */
+        const me =
+            await bickleGetMe();
+
+
+        if (
+            !me.response.ok ||
+            !me.data?.ok ||
+            !me.data?.user
+        ) {
+
+            alert(
+                "Bickle에 로그인한 뒤 저장할 수 있습니다."
+            );
+
+            return;
+        }
+
+
+        /*
+         * EntryJS 프로젝트 추출
+         */
+        const project =
+            Entry.exportProject();
+
+
+        if (!project) {
+            throw new Error(
+                "프로젝트 데이터를 가져오지 못했습니다."
+            );
+        }
+
+
+        /*
+         * 작품 제목
+         */
+        const title =
+            String(
+                project.name ||
+                "제목 없는 작품"
+            ).trim() ||
+            "제목 없는 작품";
+
+
+        /*
+         * 프로젝트 JSON
+         */
+        const projectData =
+            JSON.stringify(project);
+
+
+        /*
+         * 새 작품이면 POST
+         * 기존 작품이면 PUT
+         */
+        const isUpdate =
+            Boolean(bickleProjectId);
+
+
+        const url =
+            isUpdate
+                ? `${BICKLE_API_BASE}/api/projects/${encodeURIComponent(bickleProjectId)}`
+                : `${BICKLE_API_BASE}/api/projects`;
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method:
+                        isUpdate
+                            ? "PUT"
+                            : "POST",
+
+                    credentials:
+                        "include",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            title,
+                            project_data:
+                                projectData
+                        })
+                }
+            );
+
+
+        let data = {};
+
+        try {
+            data =
+                await response.json();
+        } catch {
+            data = {};
+        }
+
+
+        /*
+         * 서버 오류
+         */
+        if (!response.ok) {
+
+            if (
+                data.error ===
+                    "NOT_LOGGED_IN" ||
+
+                data.error ===
+                    "INVALID_SESSION" ||
+
+                data.error ===
+                    "SESSION_EXPIRED"
+            ) {
+
+                throw new Error(
+                    "로그인이 만료되었습니다. 다시 로그인해 주세요."
+                );
+
+            }
+
+
+            if (
+                data.error ===
+                "PROJECT_NOT_FOUND"
+            ) {
+
+                bickleProjectId =
+                    null;
+
+                throw new Error(
+                    "저장하려던 Bickle 작품이 존재하지 않습니다. 다시 저장해 주세요."
+                );
+
+            }
+
+
+            throw new Error(
+                data.message ||
+                data.error ||
+                `HTTP ${response.status}`
+            );
+
+        }
+
+
+        /*
+         * 새 작품 ID 기억
+         */
+        if (
+            data?.project?.id
+        ) {
+
+            bickleProjectId =
+                data.project.id;
+
+        } else if (
+            data?.id
+        ) {
+
+            bickleProjectId =
+                data.id;
+
+        }
+
+
+        button.textContent =
+            "✓ 저장됨";
+
+
+        setTimeout(
+            () => {
+
+                if (button) {
+
+                    button.textContent =
+                        "☁ Bickle에 저장";
+
+                }
+
+            },
+            1200
+        );
+
+    } catch (error) {
+
+        console.error(
+            "[Bickle Save]",
+            error
+        );
+
+
+        alert(
+            "Bickle에 작품을 저장하지 못했습니다.\n\n" +
+            error.message
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+
+        if (
+            button.textContent ===
+            "⏳ Bickle에 저장 중..."
+        ) {
+
+            button.textContent =
+                "☁ Bickle에 저장";
+
+        }
+
+    }
+
+}
+
+
+async function downloadENT(){
                 const btn=document.getElementById('entDownloadButton');
                 try{
                     if(typeof Entry?.exportProject!=='function') throw new Error('Entry.exportProject()를 찾을 수 없습니다.');
@@ -956,9 +1263,6 @@ alert(
     }
 }
     }
-</script>
-<script>
-document.getElementById('entDownloadButton')?.addEventListener('click', downloadENT);
 </script>
 
         <!-- main script -->
