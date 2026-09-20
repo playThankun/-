@@ -1289,8 +1289,105 @@ var initOption = {
         Entry.defaultPath = 'https://playentry.org';
 
         Entry.creationChangedEvent = new Entry.Event(window);
-        Entry.init(document.getElementById('workspace'), initOption);
+Entry.init(document.getElementById('workspace'), initOption);
+
+async function loadBickleProject() {
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get('id');
+
+    // /editor/ 로 들어온 경우
+    if (!projectId) {
         Entry.loadProject();
+        return;
+    }
+
+    try {
+        console.log('[Bickle] 작품 불러오는 중:', projectId);
+
+        const response = await fetch(
+            `${BICKLE_API_BASE}/api/projects/${encodeURIComponent(projectId)}`,
+            {
+                method: 'GET',
+                credentials: 'include'
+            }
+        );
+
+        let data = {};
+
+        try {
+            data = await response.json();
+        } catch {
+            data = {};
+        }
+
+        if (!response.ok || !data?.ok || !data?.project) {
+            throw new Error(
+                data?.message ||
+                data?.error ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        bickleProjectId = projectId;
+
+        let projectData = data.project.project_data;
+
+        if (typeof projectData === 'string') {
+            projectData = JSON.parse(projectData);
+        }
+
+        if (!projectData) {
+            throw new Error('프로젝트 데이터가 없습니다.');
+        }
+
+        Entry.clearProject();
+        Entry.loadProject(projectData);
+
+        console.log('[Bickle] 작품 불러오기 완료:', projectId);
+
+        setTimeout(() => {
+            try {
+                const workspace = Entry.getMainWS?.();
+
+                if (workspace) {
+                    workspace.resize();
+                }
+
+                if (Entry.creationChangedEvent) {
+                    try {
+                        Entry.creationChangedEvent.notify();
+                    } catch {}
+                }
+
+                window.dispatchEvent(
+                    new Event('resize')
+                );
+
+            } catch (error) {
+                console.warn(
+                    '[Bickle] UI 갱신 실패',
+                    error
+                );
+            }
+        }, 100);
+
+    } catch (error) {
+
+        console.error(
+            '[Bickle Project Load]',
+            error
+        );
+
+        alert(
+            'Bickle 작품을 불러오지 못했습니다.\n\n' +
+            error.message
+        );
+        Entry.clearProject();
+        Entry.loadProject();
+    }
+}
+
+loadBickleProject();
 
         const PopupClass = window.EntryTool
             ? window.EntryTool.Popup
