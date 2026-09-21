@@ -432,27 +432,7 @@ body.bickle-play-mode .entryPlaygroundIntro {
  */
 
 body.bickle-play-mode .engineContainer {
-    position: fixed !important;
-
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-
-    width: 100vw !important;
-    height: 100vh !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    display: flex !important;
-
-    align-items: center !important;
-    justify-content: center !important;
-
-    overflow: hidden !important;
-
-    background: #000 !important;
+    background: transparent !important;
 }
 
 
@@ -1566,6 +1546,31 @@ alert(
     }
 }
     }
+
+
+    function applyBicklePlayerSkin() {
+    const engineEl = document.querySelector('.entryEngine_w, .entryEngine');
+    if (engineEl) engineEl.classList.add('entryEngineMinimize');
+
+    const canvasWs = document.querySelector('.entryCanvasWorkspace');
+    if (canvasWs) canvasWs.classList.add('minimize');
+
+    const mouseView = document.querySelector('.entryMouseViewWorkspace_w');
+    if (mouseView) mouseView.classList.add('minimize');
+
+    const wrapper = document.querySelector('.entryEngineButtonWrapper');
+    if (wrapper && !wrapper.dataset.bickleControls) {
+        wrapper.dataset.bickleControls = '1';
+        wrapper.innerHTML = `
+            <span class="entryEngineButtonMinimize entryStopButtonMinimize entryRemove"
+                  onclick="Entry.engine.toggleStop()"></span>
+            <span class="entryEngineButtonMinimize entryPauseButtonMinimize entryRemove"
+                  onclick="Entry.engine.togglePause && Entry.engine.togglePause()"></span>
+            <span class="entryEngineButtonMinimize entryMaximizeButtonMinimize"
+                  onclick="(document.querySelector('.entryEngine_w')||document.body).requestFullscreen?.()"></span>
+        `;
+    }
+}
 </script>
 
  <!-- main script -->
@@ -1976,7 +1981,7 @@ if (bicklePlayMode) {
 
     setTimeout(() => {
 
-        refreshBickleWorkspace();
+        applyBicklePlayerSkin();
 
         if (
             typeof Entry.dispatchEvent ===
