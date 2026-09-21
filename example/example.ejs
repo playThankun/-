@@ -2075,32 +2075,25 @@ alert(
                  */
 
 if (bicklePlayMode) {
-
     setTimeout(() => {
-
         applyBicklePlayerSkin();
 
-        if (
-            typeof Entry.dispatchEvent ===
-            'function'
-        ) {
+        const runButton = document.querySelector(
+            '.entryRunButtonWorkspace_w'
+        );
 
-            Entry.dispatchEvent('run');
+        if (runButton) {
+            runButton.click();
 
             console.log(
                 '[Bickle Play Mode] 작품 실행 완료'
             );
-
         } else {
-
             console.error(
-                '[Bickle Play Mode] Entry.dispatchEvent()를 찾을 수 없습니다.'
+                '[Bickle Play Mode] 시작하기 버튼을 찾을 수 없습니다.'
             );
-
         }
-
     }, 300);
-
 }
 
 
