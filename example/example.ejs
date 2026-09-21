@@ -287,7 +287,8 @@ body {
  * /editor/?id=작품ID&mode=play
  *
  * EntryJS 편집기를 숨기고
- * 실제 작품 실행 화면만 표시합니다.
+ * 실제 작품 실행 화면(=playentry.org의 실제 작품 iframe 플레이어)처럼
+ * EntryJS 자체 내장 "미니마이즈(minimize)" 뷰를 사용합니다.
  */
 
 /*
@@ -301,10 +302,7 @@ body.bickle-play-mode {
     height: 100vh !important;
 
     overflow: hidden !important;
-
-    background: #000 !important;
 }
-
 
 /*
  * ========================================
@@ -349,8 +347,6 @@ body.bickle-play-mode #workspace {
     padding: 0 !important;
 
     overflow: hidden !important;
-
-    background: #000 !important;
 }
 
 
@@ -380,23 +376,9 @@ body.bickle-play-mode .entryBlockCountView {
 
 
 /*
- * 시작 / 정지 / 일시정지 버튼
- *
- * 작품 실행 화면에서는 필요 없음
- */
-
-/*
  * 엔진 상단 버튼
  */
 body.bickle-play-mode .entryEngineTopWorkspace {
-    display: none !important;
-}
-
-
-/*
- * 마우스 좌표 / 마우스 관련 UI
- */
-body.bickle-play-mode .entryMouseViewWorkspace_w {
     display: none !important;
 }
 
@@ -432,7 +414,28 @@ body.bickle-play-mode .entryPlaygroundIntro {
  */
 
 body.bickle-play-mode .engineContainer {
-    background: transparent !important;
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    overflow: hidden !important;
+
+    background: #000 !important;
 }
 
 
@@ -441,11 +444,8 @@ body.bickle-play-mode .engineContainer {
  * 실제 EntryJS 실행 영역
  * ========================================
  *
- * Entry 기본 Stage는 640 × 360
- * = 16:9
- *
- * 화면 비율을 유지하면서
- * 가능한 한 크게 표시합니다.
+ * Entry 기본 Stage는 640 × 360 = 16:9
+ * 화면 비율을 유지하면서 가능한 한 크게 표시합니다.
  */
 
 body.bickle-play-mode .entryEngine_w {
@@ -469,14 +469,8 @@ body.bickle-play-mode .entryEngine_w {
 
 /*
  * ========================================
- * 실제 작품 화면
+ * 실제 작품 화면 (canvas)
  * ========================================
- *
- * 이게 네가 보여준
- *
- * <canvas id="entryCanvas">
- *
- * 바로 그 화면입니다.
  */
 
 body.bickle-play-mode #entryCanvas {
@@ -502,55 +496,91 @@ body.bickle-play-mode #entryCanvas {
     background: #000 !important;
 }
 
-body.bickle-play-mode .entryEngineButtonWrapper {
-    display: flex !important;
-
-    width: 100% !important;
-
-    align-items: center !important;
-    justify-content: center !important;
-
-    margin-top: 8px !important;
-
-    position: relative !important;
-    z-index: 100 !important;
-}
-
-
-/*
- * ========================================
- * 혹시 EntryJS가 Canvas에 inline width를
- * 직접 넣어도 강제로 덮어쓰기
- * ========================================
- */
-
 body.bickle-play-mode #entryCanvas.entryCanvasWorkspace {
     width: 100% !important;
     height: 100% !important;
 }
 
-
-/*
- * ========================================
- * 혹시 주변 EntryJS wrapper가
- * 기본 크기를 강제로 가지고 있는 경우
- * ========================================
- */
-
 body.bickle-play-mode .entryEngine_w > * {
     box-sizing: border-box;
 }
 
-
 /*
- * Canvas 외의 Engine UI는 모두 숨김
+ * ========================================
+ * Bickle 정지/일시정지/좌표/최대화 툴바
+ * ========================================
  *
- * 단, Canvas 자체는 유지합니다.
+ * playentry.org 실제 작품 플레이어의 .entryEngineMinimize 툴바를
+ * 그대로 재현합니다. 아이콘 경로만 playentry.org 절대경로로 고쳤습니다.
  */
 
-body.bickle-play-mode .entryEngine_w
-    > .entryEngineTopWorkspace {
-    display: none !important;
+body.bickle-play-mode .bickle-player-bar {
+    height: 48px;
+    line-height: 48px;
+    position: relative;
+
+    width: min(100vw, calc(100vh * 16 / 9));
+    margin: 0 auto;
+
+    background-color: #ffffff;
+    padding-left: 30px;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn {
+    border: none;
+    background-color: white;
+    position: relative;
+    margin-top: 0;
+    margin-right: 10px;
+    outline: none;
+    cursor: pointer;
+    height: 14px;
+    width: 14px;
+    padding: 0;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-stop {
+    background-image: url(https://playentry.org/img/assets/project/stop.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 14px auto;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-pause {
+    background-image: url(https://playentry.org/img/assets/project/pause.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 14px auto;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-pause.paused {
+    background-image: url(https://playentry.org/img/assets/project/restart.svg);
+    background-size: 14px 14px;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-maximize {
+    width: 15px;
+    height: 15px;
+    background-image: url(https://playentry.org/img/assets/project/reduce.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 15px;
+    margin-left: auto;
+    margin-right: 12px;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-coordinate {
+    width: 16px;
+    height: 16px;
+    background-image: url(https://playentry.org/img/assets/project/grid.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    margin-right: 12px;
 }
 
 </style>
@@ -754,6 +784,79 @@ body.bickle-play-mode .entryEngine_w
                 workspace.setMode(option);
                 document.getElementById('blockModeButton')?.classList.toggle('active', mode === 'block');
                 document.getElementById('pythonModeButton')?.classList.toggle('active', mode === 'python');
+            }
+
+            /*
+             * ========================================
+             * Bickle Play Mode 갱신
+             * ========================================
+             *
+             * play 모드로 전환된 뒤 Workspace/Canvas 크기를
+             * 새 레이아웃(CSS)에 맞게 다시 계산시키고,
+             * 정지/일시정지/좌표/최대화 툴바를 붙입니다.
+             */
+            function bickleToggleCoordinate(btn) {
+                const mouseView = document.querySelector('.entryMouseViewWorkspace_w');
+                if (mouseView) {
+                    const showing = mouseView.style.display !== 'none';
+                    mouseView.style.display = showing ? 'none' : '';
+                }
+            }
+
+            function bickleRequestFullscreen() {
+                const el = document.querySelector('.entryEngine_w') || document.body;
+                if (el.requestFullscreen) {
+                    el.requestFullscreen();
+                } else if (document.fullscreenElement) {
+                    document.exitFullscreen?.();
+                }
+            }
+
+            function bickleTogglePause() {
+                const btn = document.querySelector('.bickle-btn-pause');
+                try {
+                    if (typeof Entry.engine?.togglePause === 'function') {
+                        Entry.engine.togglePause();
+                    }
+                } catch (e) {
+                    console.warn('[Bickle Play Mode] pause 실패', e);
+                }
+                if (btn) btn.classList.toggle('paused');
+            }
+
+            function bickleStop() {
+                try {
+                    if (typeof Entry.engine?.toggleStop === 'function') {
+                        Entry.engine.toggleStop();
+                    }
+                } catch (e) {
+                    console.warn('[Bickle Play Mode] stop 실패', e);
+                }
+            }
+
+            function applyBicklePlayerSkin() {
+                try {
+                    const workspace = Entry.getMainWS?.();
+                    if (workspace) workspace.resize();
+                } catch (e) {
+                    console.warn('[Bickle Play Mode] resize 실패', e);
+                }
+                window.dispatchEvent(new Event('resize'));
+
+                if (!document.querySelector('.bickle-player-bar')) {
+                    const bar = document.createElement('div');
+                    bar.className = 'bickle-player-bar';
+                    bar.innerHTML = `
+                        <button type="button" class="bickle-btn bickle-btn-stop" title="정지" onclick="bickleStop()"></button>
+                        <button type="button" class="bickle-btn bickle-btn-pause" title="일시정지" onclick="bickleTogglePause()"></button>
+                        <button type="button" class="bickle-btn bickle-btn-coordinate" title="좌표 보기" onclick="bickleToggleCoordinate(this)"></button>
+                        <button type="button" class="bickle-btn bickle-btn-maximize" title="전체화면" onclick="bickleRequestFullscreen()"></button>
+                    `;
+                    const engineEl = document.querySelector('.entryEngine_w');
+                    if (engineEl && engineEl.parentNode) {
+                        engineEl.parentNode.insertBefore(bar, engineEl.nextSibling);
+                    }
+                }
             }
 
             const BICKLE_ENCODER = new TextEncoder();
@@ -1546,31 +1649,6 @@ alert(
     }
 }
     }
-
-
-    function applyBicklePlayerSkin() {
-    const engineEl = document.querySelector('.entryEngine_w, .entryEngine');
-    if (engineEl) engineEl.classList.add('entryEngineMinimize');
-
-    const canvasWs = document.querySelector('.entryCanvasWorkspace');
-    if (canvasWs) canvasWs.classList.add('minimize');
-
-    const mouseView = document.querySelector('.entryMouseViewWorkspace_w');
-    if (mouseView) mouseView.classList.add('minimize');
-
-    const wrapper = document.querySelector('.entryEngineButtonWrapper');
-    if (wrapper && !wrapper.dataset.bickleControls) {
-        wrapper.dataset.bickleControls = '1';
-        wrapper.innerHTML = `
-            <span class="entryEngineButtonMinimize entryStopButtonMinimize entryRemove"
-                  onclick="Entry.engine.toggleStop()"></span>
-            <span class="entryEngineButtonMinimize entryPauseButtonMinimize entryRemove"
-                  onclick="Entry.engine.togglePause && Entry.engine.togglePause()"></span>
-            <span class="entryEngineButtonMinimize entryMaximizeButtonMinimize"
-                  onclick="(document.querySelector('.entryEngine_w')||document.body).requestFullscreen?.()"></span>
-        `;
-    }
-}
 </script>
 
  <!-- main script -->
@@ -1662,6 +1740,25 @@ alert(
             if (!projectId) {
 
                 Entry.loadProject();
+
+                if (bicklePlayMode) {
+
+                    setTimeout(() => {
+
+                        applyBicklePlayerSkin();
+
+                        if (
+                            typeof Entry.dispatchEvent ===
+                            'function'
+                        ) {
+
+                            Entry.dispatchEvent('run');
+
+                        }
+
+                    }, 300);
+
+                }
 
                 return;
             }
