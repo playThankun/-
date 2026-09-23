@@ -416,13 +416,10 @@ body.bickle-play-mode .entryPlaygroundIntro {
 body.bickle-play-mode .engineContainer {
     position: fixed !important;
 
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
+    inset: 0 !important;
 
-    width: 100vw !important;
-    height: 100vh !important;
+    width: 100% !important;
+    height: 100% !important;
 
     margin: 0 !important;
     padding: 0 !important;
@@ -452,7 +449,7 @@ body.bickle-play-mode .entryEngine_w {
     position: relative !important;
 
     width: min(
-        100vw,
+        100%,
         calc(100vh * 16 / 9)
     ) !important;
 
@@ -498,7 +495,8 @@ body.bickle-play-mode #entryCanvas {
 
 body.bickle-play-mode #entryCanvas.entryCanvasWorkspace {
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9 !important;
 }
 
 body.bickle-play-mode .entryEngine_w > * {
@@ -515,24 +513,25 @@ body.bickle-play-mode .entryEngine_w > * {
  */
 
 body.bickle-play-mode .bickle-player-bar {
-     position: relative;
-     z-index: 100;
-     flex: 0 0 48px;
+    position: relative;
+    z-index: 100;
+    flex: 0 0 48px;
 
-     width: min(100vw, calc(100vh * 16 / 9));
-     height: 48px;
-     margin: 0 auto;
+    width: min(100%, calc(100vh * 16 / 9));
+    height: 48px;
 
-     background-color: #ffffff;
-     padding: 0 18px;
-     box-sizing: border-box;
+    margin: 0 auto;
 
-     display: flex;
-     align-items: center;
-     gap: 18px;
+    background-color: #ffffff;
+    padding: 0 18px;
+    box-sizing: border-box;
 
-     border: 1px solid #f2f2f2;
-     border-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    border: 1px solid #f2f2f2;
+    border-top: 0;
 }
 
 body.bickle-play-mode .bickle-player-bar .bickle-btn {
