@@ -376,9 +376,11 @@ body.bickle-play-mode .entryBlockCountView {
 
 
 /*
- * 엔진 상단 버튼 (정지/일시정지/재생)은 숨기지 않습니다.
- * 실제 스타일은 아래쪽 "정지 / 일시정지 / 재생 버튼" 섹션에서 정리합니다.
+ * 엔진 상단 버튼
  */
+body.bickle-play-mode .entryEngineTopWorkspace {
+    display: none !important;
+}
 
 
 /*
@@ -505,24 +507,80 @@ body.bickle-play-mode .entryEngine_w > * {
 
 /*
  * ========================================
- * 정지 / 일시정지 / 재생 버튼
+ * Bickle 정지/일시정지/좌표/최대화 툴바
  * ========================================
  *
- * 이 버튼들은 Bickle이 새로 만드는 게 아니라,
- * EntryJS가 workspace 모드에서 자체적으로 이미 만들어서
- * 클릭 핸들러까지 붙여주는 진짜 버튼입니다
- * (.entryEngineButtonWrapper 안에 있음).
- * 그래서 숨기지 않고, 위치/스타일만 정리해서 씁니다.
+ * playentry.org 실제 작품 플레이어의 .entryEngineMinimize 툴바를
+ * 그대로 재현합니다. 아이콘 경로만 playentry.org 절대경로로 고쳤습니다.
  */
 
-body.bickle-play-mode .entryEngineTopWorkspace {
-    position: relative !important;
+body.bickle-play-mode .bickle-player-bar {
+    height: 48px;
+    line-height: 48px;
+    position: relative;
 
-    width: min(100vw, calc(100vh * 16 / 9)) !important;
-    margin: 0 auto !important;
+    width: min(100vw, calc(100vh * 16 / 9));
+    margin: 0 auto;
 
-    background-color: #ffffff !important;
-    box-sizing: border-box !important;
+    background-color: #ffffff;
+    padding-left: 30px;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn {
+    border: none;
+    background-color: white;
+    position: relative;
+    margin-top: 0;
+    margin-right: 10px;
+    outline: none;
+    cursor: pointer;
+    height: 14px;
+    width: 14px;
+    padding: 0;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-stop {
+    background-image: url(https://playentry.org/img/assets/project/stop.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 14px auto;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-pause {
+    background-image: url(https://playentry.org/img/assets/project/pause.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 14px auto;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-pause.paused {
+    background-image: url(https://playentry.org/img/assets/project/restart.svg);
+    background-size: 14px 14px;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-maximize {
+    width: 15px;
+    height: 15px;
+    background-image: url(https://playentry.org/img/assets/project/reduce.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 15px;
+    margin-left: auto;
+    margin-right: 12px;
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-coordinate {
+    width: 16px;
+    height: 16px;
+    background-image: url(https://playentry.org/img/assets/project/grid.svg);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    background-size: 16px;
+    margin-right: 12px;
 }
 
 </style>
@@ -734,12 +792,48 @@ body.bickle-play-mode .entryEngineTopWorkspace {
              * ========================================
              *
              * play 모드로 전환된 뒤 Workspace/Canvas 크기를
-             * 새 레이아웃(CSS)에 맞게 다시 계산시킵니다.
-             *
-             * 정지/일시정지/재생 버튼은 우리가 새로 만들지 않습니다 —
-             * EntryJS가 workspace 모드에서 이미 만들어주는
-             * .entryEngineButtonWrapper 안의 진짜 버튼을 그대로 씁니다.
+             * 새 레이아웃(CSS)에 맞게 다시 계산시키고,
+             * 정지/일시정지/좌표/최대화 툴바를 붙입니다.
              */
+            function bickleToggleCoordinate(btn) {
+                const mouseView = document.querySelector('.entryMouseViewWorkspace_w');
+                if (mouseView) {
+                    const showing = mouseView.style.display !== 'none';
+                    mouseView.style.display = showing ? 'none' : '';
+                }
+            }
+
+            function bickleRequestFullscreen() {
+                const el = document.querySelector('.entryEngine_w') || document.body;
+                if (el.requestFullscreen) {
+                    el.requestFullscreen();
+                } else if (document.fullscreenElement) {
+                    document.exitFullscreen?.();
+                }
+            }
+
+            function bickleTogglePause() {
+                const btn = document.querySelector('.bickle-btn-pause');
+                try {
+                    if (typeof Entry.engine?.togglePause === 'function') {
+                        Entry.engine.togglePause();
+                    }
+                } catch (e) {
+                    console.warn('[Bickle Play Mode] pause 실패', e);
+                }
+                if (btn) btn.classList.toggle('paused');
+            }
+
+            function bickleStop() {
+                try {
+                    if (typeof Entry.engine?.toggleStop === 'function') {
+                        Entry.engine.toggleStop();
+                    }
+                } catch (e) {
+                    console.warn('[Bickle Play Mode] stop 실패', e);
+                }
+            }
+
             function applyBicklePlayerSkin() {
                 try {
                     const workspace = Entry.getMainWS?.();
@@ -748,6 +842,21 @@ body.bickle-play-mode .entryEngineTopWorkspace {
                     console.warn('[Bickle Play Mode] resize 실패', e);
                 }
                 window.dispatchEvent(new Event('resize'));
+
+                if (!document.querySelector('.bickle-player-bar')) {
+                    const bar = document.createElement('div');
+                    bar.className = 'bickle-player-bar';
+                    bar.innerHTML = `
+                        <button type="button" class="bickle-btn bickle-btn-stop" title="정지" onclick="bickleStop()"></button>
+                        <button type="button" class="bickle-btn bickle-btn-pause" title="일시정지" onclick="bickleTogglePause()"></button>
+                        <button type="button" class="bickle-btn bickle-btn-coordinate" title="좌표 보기" onclick="bickleToggleCoordinate(this)"></button>
+                        <button type="button" class="bickle-btn bickle-btn-maximize" title="전체화면" onclick="bickleRequestFullscreen()"></button>
+                    `;
+                    const engineEl = document.querySelector('.entryEngine_w');
+                    if (engineEl && engineEl.parentNode) {
+                        engineEl.parentNode.insertBefore(bar, engineEl.nextSibling);
+                    }
+                }
             }
 
             const BICKLE_ENCODER = new TextEncoder();
@@ -1966,32 +2075,25 @@ alert(
                  */
 
 if (bicklePlayMode) {
-
     setTimeout(() => {
-
         applyBicklePlayerSkin();
 
-        if (
-            typeof Entry.dispatchEvent ===
-            'function'
-        ) {
+        const runButton = document.querySelector(
+            '.entryRunButtonWorkspace_w'
+        );
 
-            Entry.dispatchEvent('run');
+        if (runButton) {
+            runButton.click();
 
             console.log(
                 '[Bickle Play Mode] 작품 실행 완료'
             );
-
         } else {
-
             console.error(
-                '[Bickle Play Mode] Entry.dispatchEvent()를 찾을 수 없습니다.'
+                '[Bickle Play Mode] 시작하기 버튼을 찾을 수 없습니다.'
             );
-
         }
-
     }, 300);
-
 }
 
 
