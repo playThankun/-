@@ -515,72 +515,104 @@ body.bickle-play-mode .entryEngine_w > * {
  */
 
 body.bickle-play-mode .bickle-player-bar {
-    height: 48px;
-    line-height: 48px;
-    position: relative;
+     position: relative;
+     z-index: 100;
+     flex: 0 0 48px;
 
-    width: min(100vw, calc(100vh * 16 / 9));
-    margin: 0 auto;
+     width: min(100vw, calc(100vh * 16 / 9));
+     height: 48px;
+     margin: 0 auto;
 
-    background-color: #ffffff;
-    padding-left: 30px;
-    box-sizing: border-box;
+     background-color: #ffffff;
+     padding: 0 18px;
+     box-sizing: border-box;
 
-    display: flex;
-    align-items: center;
+     display: flex;
+     align-items: center;
+     gap: 18px;
+
+     border: 1px solid #f2f2f2;
+     border-top: 0;
 }
 
 body.bickle-play-mode .bickle-player-bar .bickle-btn {
-    border: none;
-    background-color: white;
-    position: relative;
-    margin-top: 0;
-    margin-right: 10px;
-    outline: none;
-    cursor: pointer;
-    height: 14px;
-    width: 14px;
-    padding: 0;
+     border: none;
+     background-color: white;
+     position: relative;
+     outline: none;
+     cursor: pointer;
+
+     flex: 0 0 auto;
+
+     height: 16px;
+     min-width: 16px;
+     padding: 0 0 0 23px;
+
+     color: #979797;
+     font-size: 14px;
+     font-weight: 600;
+     line-height: 16px;
 }
 
-body.bickle-play-mode .bickle-player-bar .bickle-btn-stop {
-    background-image: url(https://playentry.org/img/assets/project/stop.svg);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    background-size: 14px auto;
+body.bickle-play-mode .bickle-player-bar .bickle-btn::before {
+     position: absolute;
+     left: 0;
+     top: 1px;
+
+     width: 14px;
+     height: 14px;
+
+     background-position: 0 0;
+     background-repeat: no-repeat;
+     background-size: 14px auto;
+
+     content: '';
 }
 
-body.bickle-play-mode .bickle-player-bar .bickle-btn-pause {
-    background-image: url(https://playentry.org/img/assets/project/pause.svg);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    background-size: 14px auto;
+body.bickle-play-mode .bickle-player-bar .bickle-btn:hover {
+     color: #555;
 }
 
-body.bickle-play-mode .bickle-player-bar .bickle-btn-pause.paused {
-    background-image: url(https://playentry.org/img/assets/project/restart.svg);
-    background-size: 14px 14px;
+body.bickle-play-mode .bickle-player-bar .bickle-btn-run::before {
+     background-image: url(https://playentry.org/img/icoPlayerBarPlay.svg);
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-stop::before {
+     background-image: url(https://playentry.org/img/IcoPlayerBarStop.svg);
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-pause::before {
+     background-image: url(https://playentry.org/img/IcoPlayerBarPause.svg);
+}
+
+body.bickle-play-mode .bickle-player-bar .bickle-btn-pause.paused::before {
+     background-image: url(https://playentry.org/img/icoPlayerBarPlay.svg);
 }
 
 body.bickle-play-mode .bickle-player-bar .bickle-btn-maximize {
-    width: 15px;
-    height: 15px;
-    background-image: url(https://playentry.org/img/assets/project/reduce.svg);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    background-size: 15px;
-    margin-left: auto;
-    margin-right: 12px;
+     width: 16px;
+     min-width: 16px;
+     height: 16px;
+     padding: 0;
+
+     background-image: url(https://playentry.org/img/icoPlayerBarFullScreen.svg);
+     background-position: 0 0;
+     background-repeat: no-repeat;
+     background-size: 16px;
+
+     margin-left: auto;
 }
 
 body.bickle-play-mode .bickle-player-bar .bickle-btn-coordinate {
-    width: 16px;
-    height: 16px;
-    background-image: url(https://playentry.org/img/assets/project/grid.svg);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    background-size: 16px;
-    margin-right: 12px;
+     width: 16px;
+     min-width: 16px;
+     height: 16px;
+     padding: 0;
+
+     background-image: url(https://playentry.org/img/icoPlayerBarGrid.svg);
+     background-position: 0 0;
+     background-repeat: no-repeat;
+     background-size: 16px;
 }
 
 </style>
@@ -795,67 +827,294 @@ body.bickle-play-mode .bickle-player-bar .bickle-btn-coordinate {
              * 새 레이아웃(CSS)에 맞게 다시 계산시키고,
              * 정지/일시정지/좌표/최대화 툴바를 붙입니다.
              */
-            function bickleToggleCoordinate(btn) {
-                const mouseView = document.querySelector('.entryMouseViewWorkspace_w');
-                if (mouseView) {
-                    const showing = mouseView.style.display !== 'none';
-                    mouseView.style.display = showing ? 'none' : '';
+            function bickleGetEngineState() {
+                try {
+                    if (typeof Entry?.engine?.isState === 'function') {
+                        if (Entry.engine.isState('run')) {
+                            return 'run';
+                        }
+
+                        if (Entry.engine.isState('pause')) {
+                            return 'pause';
+                        }
+                    }
+                } catch (e) {
+                    console.warn(
+                        '[Bickle Play Mode] 상태 확인 실패',
+                        e
+                    );
+                }
+
+                return 'stop';
+            }
+
+            function bickleClickEntryButton(selector) {
+                const button =
+                    document.querySelector(selector);
+
+                if (!button) {
+                    console.warn(
+                        '[Bickle Play Mode] EntryJS 버튼을 찾을 수 없습니다:',
+                        selector
+                    );
+
+                    return false;
+                }
+
+                button.click();
+
+                return true;
+            }
+
+            function bickleSyncPlayerButtons() {
+                const bar =
+                    document.querySelector(
+                        '.bickle-player-bar'
+                    );
+
+                if (!bar) {
+                    return;
+                }
+
+                const runButton =
+                    bar.querySelector(
+                        '.bickle-btn-run'
+                    );
+
+                const stopButton =
+                    bar.querySelector(
+                        '.bickle-btn-stop'
+                    );
+
+                const pauseButton =
+                    bar.querySelector(
+                        '.bickle-btn-pause'
+                    );
+
+                const state =
+                    bickleGetEngineState();
+
+                if (runButton) {
+                    runButton.style.display =
+                        state === 'stop'
+                            ? 'inline-block'
+                            : 'none';
+                }
+
+                if (stopButton) {
+                    stopButton.style.display =
+                        state === 'stop'
+                            ? 'none'
+                            : 'inline-block';
+                }
+
+                if (pauseButton) {
+                    pauseButton.style.display =
+                        state === 'stop'
+                            ? 'none'
+                            : 'inline-block';
+
+                    pauseButton.classList.toggle(
+                        'paused',
+                        state === 'pause'
+                    );
+
+                    pauseButton.textContent =
+                        state === 'pause'
+                            ? '다시 시작'
+                            : '일시정지';
+
+                    pauseButton.title =
+                        state === 'pause'
+                            ? '다시 시작'
+                            : '일시정지';
                 }
             }
 
-            function bickleRequestFullscreen() {
-                const el = document.querySelector('.entryEngine_w') || document.body;
-                if (el.requestFullscreen) {
-                    el.requestFullscreen();
-                } else if (document.fullscreenElement) {
-                    document.exitFullscreen?.();
+            function bickleRun() {
+                if (
+                    bickleClickEntryButton(
+                        '.entryRunButtonWorkspace_w'
+                    )
+                ) {
+                    setTimeout(
+                        bickleSyncPlayerButtons,
+                        50
+                    );
                 }
             }
 
             function bickleTogglePause() {
-                const btn = document.querySelector('.bickle-btn-pause');
-                try {
-                    if (typeof Entry.engine?.togglePause === 'function') {
-                        Entry.engine.togglePause();
-                    }
-                } catch (e) {
-                    console.warn('[Bickle Play Mode] pause 실패', e);
+                const state =
+                    bickleGetEngineState();
+
+                if (
+                    state !== 'run' &&
+                    state !== 'pause'
+                ) {
+                    return;
                 }
-                if (btn) btn.classList.toggle('paused');
+
+                if (
+                    bickleClickEntryButton(
+                        '.entryPauseButtonWorkspace_full, .entryPauseButtonWorkspace_w'
+                    )
+                ) {
+                    setTimeout(
+                        bickleSyncPlayerButtons,
+                        50
+                    );
+                }
             }
 
             function bickleStop() {
-                try {
-                    if (typeof Entry.engine?.toggleStop === 'function') {
-                        Entry.engine.toggleStop();
-                    }
-                } catch (e) {
-                    console.warn('[Bickle Play Mode] stop 실패', e);
+                if (
+                    bickleClickEntryButton(
+                        '.entryStopButtonWorkspace_w'
+                    )
+                ) {
+                    setTimeout(
+                        bickleSyncPlayerButtons,
+                        50
+                    );
+                }
+            }
+
+            function bickleToggleCoordinate(btn) {
+                const mouseView =
+                    document.querySelector(
+                        '.entryMouseViewWorkspace_w'
+                    );
+
+                if (mouseView) {
+                    const showing =
+                        mouseView.style.display !==
+                        'none';
+
+                    mouseView.style.display =
+                        showing ? 'none' : '';
+                }
+            }
+
+            function bickleRequestFullscreen() {
+                const el =
+                    document.querySelector(
+                        '.entryEngine_w'
+                    ) || document.body;
+
+                if (
+                    document.fullscreenElement
+                ) {
+                    document.exitFullscreen?.();
+                    return;
+                }
+
+                if (el.requestFullscreen) {
+                    el.requestFullscreen();
                 }
             }
 
             function applyBicklePlayerSkin() {
                 try {
-                    const workspace = Entry.getMainWS?.();
-                    if (workspace) workspace.resize();
-                } catch (e) {
-                    console.warn('[Bickle Play Mode] resize 실패', e);
-                }
-                window.dispatchEvent(new Event('resize'));
+                    const workspace =
+                        Entry.getMainWS?.();
 
-                if (!document.querySelector('.bickle-player-bar')) {
-                    const bar = document.createElement('div');
-                    bar.className = 'bickle-player-bar';
-                    bar.innerHTML = `
-                        <button type="button" class="bickle-btn bickle-btn-stop" title="정지" onclick="bickleStop()"></button>
-                        <button type="button" class="bickle-btn bickle-btn-pause" title="일시정지" onclick="bickleTogglePause()"></button>
-                        <button type="button" class="bickle-btn bickle-btn-coordinate" title="좌표 보기" onclick="bickleToggleCoordinate(this)"></button>
-                        <button type="button" class="bickle-btn bickle-btn-maximize" title="전체화면" onclick="bickleRequestFullscreen()"></button>
-                    `;
-                    const engineEl = document.querySelector('.entryEngine_w');
-                    if (engineEl && engineEl.parentNode) {
-                        engineEl.parentNode.insertBefore(bar, engineEl.nextSibling);
+                    if (workspace) {
+                        workspace.resize();
                     }
+                } catch (e) {
+                    console.warn(
+                        '[Bickle Play Mode] resize 실패',
+                        e
+                    );
+                }
+
+                window.dispatchEvent(
+                    new Event('resize')
+                );
+
+                let bar =
+                    document.querySelector(
+                        '.bickle-player-bar'
+                    );
+
+                if (!bar) {
+                    bar =
+                        document.createElement('div');
+
+                    bar.className =
+                        'bickle-player-bar';
+
+                    bar.innerHTML = `
+                        <button
+                            type="button"
+                            class="bickle-btn bickle-btn-run"
+                            title="실행"
+                            onclick="bickleRun()"
+                        >실행</button>
+
+                        <button
+                            type="button"
+                            class="bickle-btn bickle-btn-stop"
+                            title="정지하기"
+                            onclick="bickleStop()"
+                        >정지하기</button>
+
+                        <button
+                            type="button"
+                            class="bickle-btn bickle-btn-pause"
+                            title="일시정지"
+                            onclick="bickleTogglePause()"
+                        >일시정지</button>
+
+                        <button
+                            type="button"
+                            class="bickle-btn bickle-btn-coordinate"
+                            title="좌표 보기"
+                            onclick="bickleToggleCoordinate(this)"
+                        ></button>
+
+                        <button
+                            type="button"
+                            class="bickle-btn bickle-btn-maximize"
+                            title="전체화면"
+                            onclick="bickleRequestFullscreen()"
+                        ></button>
+                    `;
+
+                    const engineEl =
+                        document.querySelector(
+                            '.entryEngine_w'
+                        );
+
+                    if (
+                        engineEl &&
+                        engineEl.parentNode
+                    ) {
+                        engineEl.parentNode.insertBefore(
+                            bar,
+                            engineEl.nextSibling
+                        );
+                    }
+                }
+
+                bickleSyncPlayerButtons();
+
+                if (
+                    !window.__bicklePlayerStateTimer
+                ) {
+                    window.__bicklePlayerStateTimer =
+                        window.setInterval(() => {
+                            if (
+                                !document.body.classList.contains(
+                                    'bickle-play-mode'
+                                )
+                            ) {
+                                return;
+                            }
+
+                            bickleSyncPlayerButtons();
+                        }, 150);
                 }
             }
 
@@ -1742,22 +2001,9 @@ alert(
                 Entry.loadProject();
 
                 if (bicklePlayMode) {
-
                     setTimeout(() => {
-
                         applyBicklePlayerSkin();
-
-                        if (
-                            typeof Entry.dispatchEvent ===
-                            'function'
-                        ) {
-
-                            Entry.dispatchEvent('run');
-
-                        }
-
                     }, 300);
-
                 }
 
                 return;
@@ -2075,26 +2321,10 @@ alert(
                  */
 
 if (bicklePlayMode) {
-    setTimeout(() => {
-        applyBicklePlayerSkin();
-
-        const runButton = document.querySelector(
-            '.entryRunButtonWorkspace_w'
-        );
-
-        if (runButton) {
-            runButton.click();
-
-            console.log(
-                '[Bickle Play Mode] 작품 실행 완료'
-            );
-        } else {
-            console.error(
-                '[Bickle Play Mode] 시작하기 버튼을 찾을 수 없습니다.'
-            );
-        }
-    }, 300);
-}
+                    setTimeout(() => {
+                        applyBicklePlayerSkin();
+                    }, 300);
+                }
 
 
             } catch (error) {
