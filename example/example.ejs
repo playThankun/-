@@ -440,7 +440,7 @@ body.bickle-play-mode .engineContainer {
 
 
 /*
- * ========================================
+ * ========================================bickleStop()
  * 실제 EntryJS 실행 영역
  * ========================================
  *
@@ -973,6 +973,32 @@ body.bickle-play-mode .bickle-player-bar .bickle-btn-coordinate {
                 }
             }
 
+            function bickleSetPlayModeLocked(locked) {
+    const workspace = Entry.getMainWS?.();
+
+    if (!workspace) {
+        return;
+    }
+
+    try {
+        workspace._bicklePlayModeLocked = locked;
+    } catch (e) {
+        console.warn(
+            '[Bickle Play Mode] Workspace 잠금 상태 저장 실패',
+            e
+        );
+    }
+
+    const engine = document.querySelector('.entryEngine_w');
+
+    if (engine) {
+        engine.classList.toggle(
+            'bickle-play-locked',
+            locked
+        );
+    }
+}
+
             function bickleStop() {
                 if (
                     bickleClickEntryButton(
@@ -1120,6 +1146,7 @@ body.bickle-play-mode .bickle-player-bar .bickle-btn-coordinate {
                             }
 
                             bickleSyncPlayerButtons();
+                            bickleSetPlayModeLocked(true);
                         }, 150);
                 }
             }
